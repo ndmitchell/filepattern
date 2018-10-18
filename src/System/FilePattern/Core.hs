@@ -20,7 +20,7 @@ import Control.Exception.Extra
 import Data.List.Extra
 import Data.Maybe
 import Data.Tuple.Extra
-import Data.Functor
+import Control.Applicative
 import Prelude
 import System.FilePattern.Type
 import System.FilePath (isPathSeparator)

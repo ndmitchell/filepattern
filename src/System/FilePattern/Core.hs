@@ -1,7 +1,6 @@
 {-# LANGUAGE PatternGuards #-}
 {-# LANGUAGE ViewPatterns #-}
 {-# LANGUAGE ConstraintKinds #-}
-{-# LANGUAGE TupleSections #-}
 
 -- | This library supports patterns containing @*@ and @**@, but also
 --   \"legacy\" patterns including @\/\/@ as well.

@@ -6,7 +6,7 @@ module System.FilePattern.Type(
     Pat(..),
     Wildcard(..),
     wildcard,
-    lit, isLit, fromLit,
+    lit, fromLit,
     star
     ) where
 
@@ -59,10 +59,6 @@ star = Stars $ Wildcard "" [] ""
 lit :: String -> Pat
 lit = Stars . Literal
 
-isLit :: Pat -> Bool
-isLit (Stars Literal{}) = True
-isLit _ = False
-
-fromLit :: Pat -> String
-fromLit (Stars (Literal x)) = x
-fromLit _ = error "fromLit: applied to non Lit"
+fromLit :: Pat -> Maybe String
+fromLit (Stars (Literal x)) = Just x
+fromLit _ = Nothing

@@ -1,6 +1,7 @@
 {-# LANGUAGE PatternGuards #-}
 {-# LANGUAGE ViewPatterns #-}
 {-# LANGUAGE ConstraintKinds #-}
+{-# LANGUAGE TupleSections #-}
 
 -- | This library supports patterns containing @*@ and @**@, but also
 --   \"legacy\" patterns including @\/\/@ as well.
@@ -167,7 +168,9 @@ walkWith patterns = (any (\p -> matchBoolWith (Pats p) "") ps2, f ps2)
         ps2 = map fromPats patterns
 
         f (nubOrd -> ps)
-            | all isLit fin, all (isLit . fst) nxt = WalkTo (map fromLit fin, map (fromLit *** f) nxt)
+            | Just fin <- mapM fromLit fin
+            , Just nxt <- mapM (\(a,b) -> (,f b) <$> fromLit a) nxt
+                = WalkTo (fin, nxt)
             | otherwise = Walk $ \xs ->
                 (if finStar then xs else filter (\x -> any (`matchOne` x) fin) xs
                 ,[(x, f ys) | x <- xs, let ys = concat [b | (a,b) <- nxt, matchOne a x], not $ null ys])

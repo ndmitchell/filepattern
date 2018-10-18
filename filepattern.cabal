@@ -5,8 +5,8 @@ version:            0.1
 license:            BSD3
 license-file:       LICENSE
 category:           Development, FilePath
-author:             Neil Mitchell <ndmitchell@gmail.com>
-maintainer:         Evan Rutledge Borden <evan@evan-borden.com>
+author:             Neil Mitchell <ndmitchell@gmail.com>, Evan Rutledge Borden <evan@evan-borden.com>
+maintainer:         Neil Mitchell <ndmitchell@gmail.com>
 copyright:          Neil Mitchell 2011-2017
 synopsis:           File path glob-like matching
 description:

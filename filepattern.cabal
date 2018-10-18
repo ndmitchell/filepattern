@@ -7,13 +7,13 @@ license-file:       LICENSE
 category:           Development, FilePath
 author:             Neil Mitchell <ndmitchell@gmail.com>, Evan Rutledge Borden <evan@evan-borden.com>
 maintainer:         Neil Mitchell <ndmitchell@gmail.com>
-copyright:          Neil Mitchell 2011-2017
+copyright:          Neil Mitchell 2011-2018
 synopsis:           File path glob-like matching
 description:
     A library for matching files using patterns such as @src\/**\/*.png@ for all @.png@ files
     recursively under the @src@ directory. Originally taken from the Shake library.
 bug-reports:        https://github.com/eborden/filepattern/issues
-tested-with:        GHC==8.2.1, GHC==8.0.2, GHC==7.10.3, GHC==7.8.4, GHC==7.6.3, GHC==7.4.2
+tested-with:        GHC==8.6.1, GHC==8.4.4, GHC==8.2.2, GHC==8.0.2, GHC==7.10.3, GHC==7.8.4, GHC==7.6.3, GHC==7.4.2
 extra-doc-files:
     CHANGES.txt
     README.md

@@ -156,24 +156,30 @@ substituteWith func parts (pat, Pats ps)
 ---------------------------------------------------------------------
 -- EFFICIENT PATH WALKING
 
--- | Given a list of files, return a list of things I can match in this directory
---   plus a list of subdirectories and walks that apply to them.
---   Use WalkTo when the list can be predicted in advance
-data Walk = Walk ([String] -> ([String],[(String,Walk)]))
-          | WalkTo            ([String],[(String,Walk)])
+-- | The 'Walk' constructor provides an operation that when given a list of files/directories in this
+--   directory returns the @(matches, continues)@ that are of interest. The @matches@ are things in this
+--   directory which completely match a pattern. The @continues@ are those things which don't match in their
+--   entirety, but may match if the path continues, and the 'Walk' that would make them match.
+--   In all cases the @matches@ and @continues@ will be drawn from the list passed in.
+--
+--   The 'WalkTo' constructor is used when the matching items can be predicted in advance, without
+--   enumerating all possible matches first.
+data Walk = Walk   (String -> (Bool, Maybe Walk))
+          | WalkTo ([String], [(String,Walk)])
 
-walkWith :: [Pats] -> (Bool, Walk)
+walkWith :: [Pats] -> (Bool, Maybe Walk)
 walkWith patterns = (any (\p -> matchBoolWith (Pats p) "") ps2, f ps2)
     where
         ps2 = map fromPats patterns
 
-        f (nubOrd -> ps)
-            | Just fin <- mapM fromLit fin
-            , Just nxt <- mapM (\(a,b) -> (,f b) <$> fromLit a) nxt
-                = WalkTo (fin, nxt)
-            | otherwise = Walk $ \xs ->
-                (if finStar then xs else filter (\x -> any (`matchOne` x) fin) xs
-                ,[(x, f ys) | x <- xs, let ys = concat [b | (a,b) <- nxt, matchOne a x], not $ null ys])
+        f [] = Nothing
+        f (nubOrd -> ps) = Just $ case () of
+            _ | Just fin <- mapM fromLit fin
+              , Just nxt <- mapM (\(a,b) -> (,) <$> fromLit a <*> f b) nxt
+              -> WalkTo (fin, nxt)
+            _ -> Walk $ \x ->
+                (finStar || any (`matchOne` x) fin
+                ,f $ concat [b | (a,b) <- nxt, matchOne a x])
             where
                 finStar = star `elem` fin
                 fin = nubOrd $ mapMaybe final ps

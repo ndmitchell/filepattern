@@ -94,6 +94,7 @@ substitute xs x = substituteWith "System.FilePattern.substitute" xs (x, parse x)
 ---------------------------------------------------------------------
 -- EFFICIENT PATH WALKING
 
--- | Efficient path walking with a pattern
-walk :: [FilePattern] -> (Bool, Walk)
+-- | Efficient path walking with a set of patterns.
+--   The first component of the result is 'True' iff the empty string is matched by any pattern.
+walk :: [FilePattern] -> (Bool, Maybe Walk)
 walk = walkWith . map parse

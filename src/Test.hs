@@ -66,7 +66,7 @@ data Switch = Switch
     ,simple :: FilePattern -> Bool
     ,compatible :: [FilePattern] -> Bool
     ,substitute :: [String] -> FilePattern -> FilePath
-    ,walk :: [FilePattern] -> (Bool, Walk)
+    ,walk :: [FilePattern] -> (Bool, Maybe Walk)
     }
 
 switches :: [Switch]
@@ -98,13 +98,14 @@ unsafeSwitchTrace Switch{..} = do
 
 -- | Write 'matchBool' in terms of 'walker'.
 walkerMatch :: Switch -> FilePattern -> FilePath -> Bool
-walkerMatch Switch{..} a b = if null b2 then empty else f b2 w
+walkerMatch Switch{..} a b = if null b2 then empty else maybe False (f b2) w
     where
         b2 = filter (/= ".") $ split isPathSeparator b
         (empty, w) = walk [a]
 
-        f (x:xs) (Walk op) = f (x:xs) $ WalkTo $ op [x]
+        f [x]    (Walk op) = fst $ op x
         f [x]    (WalkTo (file, dir)) = x `elem` file
+        f (x:xs) (Walk op) = maybe False (f xs) $ snd $ op x
         f (x:xs) (WalkTo (file, dir)) | Just w <- lookup x dir = f xs w
         f _ _ = False
 
@@ -356,28 +357,28 @@ testMatch Switch{..} = do
 
 testWalk :: Switch -> IO ()
 testWalk Switch{..} = do
-    let shw (a, b) = "(" ++ show a ++ "," ++ showWalk b ++ ")"
+    let shw (a, b) = "(" ++ show a ++ "," ++ maybe "Nothing" ((++) "Just " . showWalk) b ++ ")"
     let both p w = assertBool (shw res == shw w) "walk" ["Name" #= name, "Pattern" #= p, "Expected" #= shw w, "Got" #= shw res]
             where res = walk p
     let diff p w1 w2 = both p $ if legacy then w1 else w2
     let walk_ = Walk undefined
 
-    both ["*.xml"] (False, walk_)
-    diff ["//*.xml"] (False, walk_) (False, WalkTo ([], [("",walk_)]))
-    both ["**/*.xml"] (False, walk_)
-    both ["foo//*.xml"] (False, WalkTo ([], [("foo",walk_)]))
-    both ["foo/**/*.xml"] (False, WalkTo ([], [("foo",walk_)]))
-    both ["foo/bar/*.xml"] (False, WalkTo ([], [("foo",WalkTo ([],[("bar",walk_)]))]))
-    both ["a","b/c"] (False, WalkTo (["a"],[("b",WalkTo (["c"],[]))]))
-    let (False, Walk f) = walk ["*/bar/*.xml"]
-        shw2 = showWalk . WalkTo
-    assertBool (shw2 (f ["foo"]) == shw2 ([], [("foo",WalkTo ([],[("bar",walk_)]))])) "walk inner" []
-    both ["bar/*.xml","baz//*.c"] (False, WalkTo ([],[("bar",walk_),("baz",walk_)]))
-    both ["bar/*.xml","baz/**/*.c"] (False, WalkTo ([],[("bar",walk_),("baz",walk_)]))
-    both [] (False, WalkTo ([], []))
-    both [""] (True, WalkTo ([""], []))
-    diff ["//"] (True, walk_) (False, WalkTo ([], [("",WalkTo ([""],[]))]))
-    both ["**"] (True, walk_)
+    both ["*.xml"] (False, Just walk_)
+    diff ["//*.xml"] (False, Just walk_) (False, Just $ WalkTo ([], [("",walk_)]))
+    both ["**/*.xml"] (False, Just walk_)
+    both ["foo//*.xml"] (False, Just $ WalkTo ([], [("foo",walk_)]))
+    both ["foo/**/*.xml"] (False, Just $ WalkTo ([], [("foo",walk_)]))
+    both ["foo/bar/*.xml"] (False, Just $ WalkTo ([], [("foo",WalkTo ([],[("bar",walk_)]))]))
+    both ["a","b/c"] (False, Just $ WalkTo (["a"],[("b",WalkTo (["c"],[]))]))
+    let (False, Just (Walk f)) = walk ["*/bar/*.xml"]
+        shw2 (b, mw) = (b, maybe "" showWalk mw)
+    assertBool (shw2 (f "foo") == shw2 (False, Just $ WalkTo ([],[("bar",walk_)]))) "walk inner" []
+    both ["bar/*.xml","baz//*.c"] (False, Just $ WalkTo ([],[("bar",walk_),("baz",walk_)]))
+    both ["bar/*.xml","baz/**/*.c"] (False, Just $ WalkTo ([],[("bar",walk_),("baz",walk_)]))
+    both [] (False, Nothing)
+    both [""] (True, Just $ WalkTo ([""], []))
+    diff ["//"] (True, Just walk_) (False, Just $ WalkTo ([], [("",WalkTo ([""],[]))]))
+    both ["**"] (True, Just walk_)
 
 
 testProperties :: Switch -> [String] -> IO ()

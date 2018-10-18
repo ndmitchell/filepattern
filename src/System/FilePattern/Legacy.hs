@@ -90,5 +90,5 @@ substitute xs x = substituteWith "System.FilePattern.Legacy.substitute" xs (x, p
 -- EFFICIENT PATH WALKING
 
 -- | Like 'System.FilePattern.walk' but also deals with @\/\/@ patterns.
-walk :: [FilePattern] -> (Bool, Walk)
+walk :: [FilePattern] -> (Bool, Maybe Walk)
 walk = walkWith . map parseLegacy

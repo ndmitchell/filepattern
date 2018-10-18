@@ -18,7 +18,7 @@ import Prelude
 -- | A type synonym for file patterns, containing @**@ and @*@. For the syntax
 --   and semantics of 'FilePattern' see '?=='.
 --
---   Most 'FilePath' values lacking @.@ and @..@ are suitable as 'FilePattern' values which match
+--   Most 'FilePath' values lacking literal @.@ and @..@ components are suitable as 'FilePattern' values which match
 --   only that specific file. On (Windows @\\@ is treated as equivalent to @\/@.
 --
 --   You can write 'FilePattern' values as a literal string, or build them

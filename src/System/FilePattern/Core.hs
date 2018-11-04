@@ -40,17 +40,16 @@ toWildcard (Pats xs) = case map (map unstars) $ split (== Skip) xs of
     where unstars (Stars x) = x
           unstars Skip = error "toWildcard: impossible - already split on Skip"
 
+eqChar :: Char -> Char -> Maybe Char
+eqChar x y = if x == y then Just x else Nothing
+
 matchWildcardBool :: Wildcard [Wildcard String] -> [String] -> Bool
-matchWildcardBool w x = isJust $ wildcardBy (wildcardBy eq) w x
-    where eq x y = if x == y then Just x else Nothing
+matchWildcardBool w x = isJust $ wildcardBy (wildcardBy eqChar) w x
 
 
 matchWildcardMaybe :: Wildcard [Wildcard String] -> [String] -> Maybe [String]
-matchWildcardMaybe w o = fmap f $ wildcardBy (wildcardBy eq) w o
+matchWildcardMaybe w o = fmap f $ wildcardBy (wildcardBy eqChar) w o
     where
-        eq :: Char -> Char -> Maybe Char
-        eq x y = if x == y then Just x else Nothing
-
         f :: [Either [[Either String String]] [String]] -> [String]
         f (Left x:xs) = rights (concat x) ++ f xs
         f (Right x:xs) = concatMap (++ "/") x : f xs
@@ -58,7 +57,7 @@ matchWildcardMaybe w o = fmap f $ wildcardBy (wildcardBy eq) w o
 
 
 matchOne :: Pat -> String -> Bool
-matchOne (Stars x) y = isJust $ wildcard x y
+matchOne (Stars x) y = isJust $ wildcardBy eqChar x y
 matchOne Skip _ = False
 
 

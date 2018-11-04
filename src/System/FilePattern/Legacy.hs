@@ -6,11 +6,11 @@
 -- True
 --
 --   This module supports @*@ and @**@ like "FilePattern", and also supports @\/\/@.
---   The inclusion of @//@ in patterns was a misfeature, as it interacts poorly with
+--   The inclusion of @\/\/@ in patterns was a misfeature, as it interacts poorly with
 --   'Development.Shake.FilePath.<.>' and 'Development.Shake.FilePath.</>'.
 --   This module will be deleted at some point in the future.
 module System.FilePattern.Legacy
-    {-# DEPRECATED "Use module FilePattern and avoid // in the patterns" #-}
+    {-# DEPRECATED "Use module System.FilePattern and avoid // in the patterns" #-}
     (
     -- * Primitive API
     FilePattern, (?==), match,

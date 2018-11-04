@@ -40,21 +40,9 @@ toWildcard (Pats xs) = case map (map unstars) $ split (== Skip) xs of
           unstars Skip = error "toWildcard: impossible - already split on Skip"
 
 matchWildcardBool :: Wildcard [Wildcard String] -> [String] -> Bool
-matchWildcardBool (Literal xs) ys = eq xs ys
-matchWildcardBool (Wildcard pre mid post) ys
-    | length ys < sum (map length $ pre : post : mid) = False
-    | otherwise = eq pre pre' && eq post post' && find mid rest2
-        where
-            (pre',rest) = splitAt (length pre) ys
-            (rest2,post') = splitAtEnd (length post) rest
+matchWildcardBool w x = isJust $ wildcardBy (wildcardBy eq) w x
+    where eq x y = if x == y then Just x else Nothing
 
-            find [] _ = True
-            find (m:ms) ys | eq m a = find ms b
-                where (a,b) = splitAt (length m) ys
-            find ms (y:ys) = find ms ys
-            find _ [] = False
-
-eq xs ys = length xs == length ys && all isJust (zipWith wildcard xs ys)
 
 matchWildcardMaybe :: Wildcard [Wildcard String] -> [String] -> Maybe [String]
 matchWildcardMaybe (Literal xs) ys = eq2 xs ys

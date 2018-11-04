@@ -6,12 +6,14 @@ module System.FilePattern.Type(
     Pat(..),
     Wildcard(..),
     wildcard,
+    wildcardBy,
     lit, fromLit,
     star
     ) where
 
 import Data.Functor
 import Data.List.Extra
+import System.FilePattern.ListBy
 import Prelude
 
 
@@ -48,6 +50,22 @@ wildcard (Wildcard pre mid post) x = do
         stripInfixes (m:ms) y = do
             (a,z) <- stripInfix m y
             (a:) <$> stripInfixes ms z
+
+
+-- | Given a wildcard, and a test string, return the matches.
+--   Only return the first (all patterns left-most) valid star matching.
+wildcardBy :: (a -> b -> Maybe c) -> Wildcard [a] -> [b] -> Maybe [Either [c] [b]]
+wildcardBy eq (Literal mid) x = (:[]) . Left <$> eqListBy eq mid x
+wildcardBy eq (Wildcard pre mid post) x = do
+    (pre, x) <- stripPrefixBy eq pre x
+    (x, post) <- stripSuffixBy eq post x
+    mid <- stripInfixes mid x
+    return $ [Left pre] ++ mid ++ [Left post]
+    where
+        stripInfixes [] x = Just [Right x]
+        stripInfixes (m:ms) y = do
+            (a,b,x) <- stripInfixBy eq m y
+            (\c -> Right a:Left b:c) <$> stripInfixes ms x
 
 
 data Pat = Skip -- ^ /**/

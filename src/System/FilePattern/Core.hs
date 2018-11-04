@@ -17,6 +17,7 @@ module System.FilePattern.Core(
     ) where
 
 import Control.Exception.Extra
+import Data.Either.Extra
 import Data.List.Extra
 import Data.Maybe
 import Data.Tuple.Extra
@@ -45,32 +46,15 @@ matchWildcardBool w x = isJust $ wildcardBy (wildcardBy eq) w x
 
 
 matchWildcardMaybe :: Wildcard [Wildcard String] -> [String] -> Maybe [String]
-matchWildcardMaybe (Literal xs) ys = eq2 xs ys
-matchWildcardMaybe (Wildcard pre mid post) ys
-    | length ys < sum (map length $ pre : post : mid) = Nothing
-    | otherwise = do
-            a <- eq2 pre pre'
-            c <- eq2 post post'
-            b <- find mid rest2
-            return $ a ++ rejig b ++ c
-        where
-            (pre',rest) = splitAt (length pre) ys
-            (rest2,post') = splitAtEnd (length post) rest
+matchWildcardMaybe w o = fmap f $ wildcardBy (wildcardBy eq) w o
+    where
+        eq :: Char -> Char -> Maybe Char
+        eq x y = if x == y then Just x else Nothing
 
-            rejig (Left x:Left y:xs) = rejig (Left (x++y):xs)
-            rejig (Right x:xs) = x ++ rejig xs
-            rejig (Left x:xs) = x : rejig xs
-            rejig [] = []
-
-            find [] ys = Just [Left $ concatMap (++ "/") ys]
-            find (m:ms) ys | Just res <- eq2 m a = (\xs -> Left "":Right res:xs) <$> find ms b
-                where (a,b) = splitAt (length m) ys
-            find ms (y:ys) = (Left (y ++ "/"):) <$> find ms ys
-            find _ [] = Nothing
-
-eq2 :: [Wildcard String] -> [String] -> Maybe [String]
-eq2 xs ys | length xs == length ys = fmap concat $ sequence $ zipWith wildcard xs ys
-          | otherwise = Nothing
+        f :: [Either [[Either String String]] [String]] -> [String]
+        f (Left x:xs) = rights (concat x) ++ f xs
+        f (Right x:xs) = concatMap (++ "/") x : f xs
+        f [] = []
 
 
 matchOne :: Pat -> String -> Bool

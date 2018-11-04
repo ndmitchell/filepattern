@@ -81,7 +81,7 @@ matchWildcardMaybe (Wildcard pre mid post) ys
             find _ [] = Nothing
 
 eq2 :: [Wildcard String] -> [String] -> Maybe [String]
-eq2 xs ys | length xs == length ys = fmap concat . sequence $ zipWith wildcard xs ys
+eq2 xs ys | length xs == length ys = fmap concat $ sequence $ zipWith wildcard xs ys
           | otherwise = Nothing
 
 

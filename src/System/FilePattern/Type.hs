@@ -5,7 +5,6 @@ module System.FilePattern.Type(
     Pats(..),
     Pat(..),
     Wildcard(..),
-    wildcard,
     wildcardBy,
     lit, fromLit,
     star
@@ -36,21 +35,6 @@ newtype Pats = Pats {fromPats :: [Pat]}
 data Wildcard a = Wildcard a [a] a -- ^ prefix [mid-parts] suffix
                 | Literal a -- ^ literal match
     deriving (Show,Eq,Ord)
-
--- | Given a wildcard, and a test string, return the matches.
---   Only return the first (all patterns left-most) valid star matching.
-wildcard :: Eq a => Wildcard [a] -> [a] -> Maybe [[a]]
-wildcard (Literal mid) x = if mid == x then Just [] else Nothing
-wildcard (Wildcard pre mid post) x = do
-    y <- stripPrefix pre x
-    z <- if null post then Just y else stripSuffix post y
-    stripInfixes mid z
-    where
-        stripInfixes [] y = Just [y]
-        stripInfixes (m:ms) y = do
-            (a,z) <- stripInfix m y
-            (a:) <$> stripInfixes ms z
-
 
 -- | Given a wildcard, and a test string, return the matches.
 --   Only return the first (all patterns left-most) valid star matching.

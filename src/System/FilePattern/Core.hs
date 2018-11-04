@@ -91,8 +91,9 @@ matchOne Skip _ = False
 
 
 matchBoolWith :: Pats -> FilePath -> Bool
-matchBoolWith (Pats pat) = f . (\x -> if null x then [""] else x) . filter (/= ".") . split isPathSeparator
-    where f = matchWildcardBool $ toWildcard $ Pats pat
+matchBoolWith pat = matchWildcardBool (toWildcard pat) .
+    (\x -> if null x then [""] else x) . filter (/= ".") .
+    split isPathSeparator
 
 
 -- | Like '?==', but returns 'Nothing' on if there is no match, otherwise 'Just' with the list

@@ -43,12 +43,8 @@ toWildcard (Pats xs) = case map (map unstars) $ split (== Skip) xs of
 eqChar :: Char -> Char -> Maybe Char
 eqChar x y = if x == y then Just x else Nothing
 
-matchWildcardBool :: Wildcard [Wildcard String] -> [String] -> Bool
-matchWildcardBool w x = isJust $ wildcard (wildcard eqChar) w x
-
-
-matchWildcardMaybe :: Wildcard [Wildcard String] -> [String] -> Maybe [String]
-matchWildcardMaybe w o = fmap f $ wildcard (wildcard eqChar) w o
+matchWildcard :: Wildcard [Wildcard String] -> [String] -> Maybe [String]
+matchWildcard w o = fmap f $ wildcard (wildcard eqChar) w o
     where
         f :: [Either [[Either String String]] [String]] -> [String]
         f (Left x:xs) = rights (concat x) ++ f xs
@@ -56,11 +52,8 @@ matchWildcardMaybe w o = fmap f $ wildcard (wildcard eqChar) w o
         f [] = []
 
 
-
 matchBoolWith :: Pats -> FilePath -> Bool
-matchBoolWith pat = matchWildcardBool (toWildcard pat) .
-    (\x -> if null x then [""] else x) . filter (/= ".") .
-    split isPathSeparator
+matchBoolWith pat = isJust . matchWith pat
 
 
 -- | Like '?==', but returns 'Nothing' on if there is no match, otherwise 'Just' with the list
@@ -75,7 +68,9 @@ matchBoolWith pat = matchWildcardBool (toWildcard pat) .
 --   Note that the @**@ will often contain a trailing @\/@, and even on Windows any
 --   @\\@ separators will be replaced by @\/@.
 matchWith :: Pats -> FilePath -> Maybe [String]
-matchWith ps = matchWildcardMaybe (toWildcard ps) . (\x -> if null x then [""] else x) . filter (/= ".") . split isPathSeparator
+matchWith ps = matchWildcard (toWildcard ps) .
+    (\x -> if null x then [""] else x) . filter (/= ".") .
+    split isPathSeparator
 
 
 ---------------------------------------------------------------------

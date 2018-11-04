@@ -44,11 +44,11 @@ eqChar :: Char -> Char -> Maybe Char
 eqChar x y = if x == y then Just x else Nothing
 
 matchWildcardBool :: Wildcard [Wildcard String] -> [String] -> Bool
-matchWildcardBool w x = isJust $ wildcardBy (wildcardBy eqChar) w x
+matchWildcardBool w x = isJust $ wildcard (wildcard eqChar) w x
 
 
 matchWildcardMaybe :: Wildcard [Wildcard String] -> [String] -> Maybe [String]
-matchWildcardMaybe w o = fmap f $ wildcardBy (wildcardBy eqChar) w o
+matchWildcardMaybe w o = fmap f $ wildcard (wildcard eqChar) w o
     where
         f :: [Either [[Either String String]] [String]] -> [String]
         f (Left x:xs) = rights (concat x) ++ f xs
@@ -155,7 +155,7 @@ walkWith patterns = (any (\p -> matchBoolWith (Pats p) "") ps2, f ps2)
                 nxt = groupSort $ concatMap next ps
 
 matchOne :: Pat -> String -> Bool
-matchOne (Stars x) y = isJust $ wildcardBy eqChar x y
+matchOne (Stars x) y = isJust $ wildcard eqChar x y
 matchOne Skip _ = False
 
 next :: [Pat] -> [(Pat, [Pat])]

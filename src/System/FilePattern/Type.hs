@@ -5,7 +5,7 @@ module System.FilePattern.Type(
     Pats(..),
     Pat(..),
     Wildcard(..),
-    wildcardBy,
+    wildcard,
     lit, fromLit,
     star
     ) where
@@ -38,9 +38,9 @@ data Wildcard a = Wildcard a [a] a -- ^ prefix [mid-parts] suffix
 
 -- | Given a wildcard, and a test string, return the matches.
 --   Only return the first (all patterns left-most) valid star matching.
-wildcardBy :: (a -> b -> Maybe c) -> Wildcard [a] -> [b] -> Maybe [Either [c] [b]]
-wildcardBy eq (Literal mid) x = (:[]) . Left <$> eqListBy eq mid x
-wildcardBy eq (Wildcard pre mid post) x = do
+wildcard :: (a -> b -> Maybe c) -> Wildcard [a] -> [b] -> Maybe [Either [c] [b]]
+wildcard eq (Literal mid) x = (:[]) . Left <$> eqListBy eq mid x
+wildcard eq (Wildcard pre mid post) x = do
     (pre, x) <- stripPrefixBy eq pre x
     (x, post) <- stripSuffixBy eq post x
     mid <- stripInfixes mid x

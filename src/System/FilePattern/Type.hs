@@ -1,5 +1,5 @@
 
--- | The types involved
+-- | The type of patterns and wildcards
 module System.FilePattern.Type(
     FilePattern,
     Pats(..),
@@ -30,11 +30,13 @@ type FilePattern = String
 newtype Pats = Pats {fromPats :: [Pat]}
     deriving (Eq,Show)
 
-data Wildcard a = Wildcard a [a] a
-                | Literal a
+-- | Representing either literals, or wildcards
+data Wildcard a = Wildcard a [a] a -- ^ prefix [mid-parts] suffix
+                | Literal a -- ^ literal match
     deriving (Show,Eq,Ord)
 
--- Only return the first (all patterns left-most) valid star matching
+-- | Given a wildcard, and a test string, return the matches.
+--   Only return the first (all patterns left-most) valid star matching.
 wildcard :: Eq a => Wildcard [a] -> [a] -> Maybe [[a]]
 wildcard (Literal mid) x = if mid == x then Just [] else Nothing
 wildcard (Wildcard pre mid post) x = do
@@ -50,12 +52,14 @@ wildcard (Wildcard pre mid post) x = do
 
 data Pat = Skip -- ^ /**/
          | Stars (Wildcard String) -- ^ *foo*, prefix (fixed), infix floaters, suffix
-                          -- e.g. *foo*bar = Stars "" ["foo"] "bar"
+                                   -- e.g. *foo*bar = Stars "" ["foo"] "bar"
             deriving (Show,Eq,Ord)
 
+-- | Create a mattern equivalent to *.
 star :: Pat
 star = Stars $ Wildcard "" [] ""
 
+-- | Create a mattern equivalent to x as a literal.
 lit :: String -> Pat
 lit = Stars . Literal
 

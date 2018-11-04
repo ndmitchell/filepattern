@@ -21,14 +21,22 @@ module System.FilePattern.Legacy
     -- * Accelerated searching
     Walk(..), walk,
     -- * Deprecation path
+    isLegacyPattern,
     addUnsafeLegacyWarning
     ) where
 
 import Control.Exception.Extra
+import Data.List
 import Data.Maybe
+import System.FilePath
 import System.FilePattern.Core
 import System.FilePattern.Parser(parseLegacy, addUnsafeLegacyWarning)
 import Prelude
+
+
+-- | Determine if a 'FilePattern' has any legacy @\/\/@ patterns.
+isLegacyPattern :: FilePattern -> Bool
+isLegacyPattern xs = [True,True] `isInfixOf` map isPathSeparator xs
 
 
 ---------------------------------------------------------------------
@@ -64,7 +72,6 @@ import Prelude
 --   normalised 'FilePath' values, so are unlikely to be correct.
 (?==) :: FilePattern -> FilePath -> Bool
 (?==) = matchBoolWith . parseLegacy
-
 
 -- | Like 'System.FilePattern.match' but also deals with @\/\/@ patterns.
 match :: FilePattern -> FilePath -> Maybe [String]

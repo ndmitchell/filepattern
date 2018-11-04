@@ -29,18 +29,19 @@ import System.FilePath (isPathSeparator)
 ---------------------------------------------------------------------
 -- PATTERNS
 
-repats :: Pats -> Wildcard [Wildcard String]
-repats (Pats xs) = case map (map unstars) $ split (== Skip) xs of
-    [] -> error "repats: given empty string"
-    [x] -> Literal x
+-- | Convert a Pat to a Wildcard structure
+toWildcard :: Pats -> Wildcard [Wildcard String]
+toWildcard (Pats xs) = case map (map unstars) $ split (== Skip) xs of
+    [] -> error "toWildcard: impossible - split never returns []"
     pre:xs -> case unsnoc xs of
-        Nothing -> error "repats: Stars check failed"
+        Nothing -> Literal pre
         Just (mid, post) -> Wildcard pre mid post
     where unstars (Stars x) = x
+          unstars Skip = error "toWildcard: impossible - already split on Skip"
 
-matchRepats :: Wildcard [Wildcard String] -> [String] -> Bool
-matchRepats (Literal xs) ys = eq xs ys
-matchRepats (Wildcard pre mid post) ys
+matchWildcardBool :: Wildcard [Wildcard String] -> [String] -> Bool
+matchWildcardBool (Literal xs) ys = eq xs ys
+matchWildcardBool (Wildcard pre mid post) ys
     | length ys < sum (map length $ pre : post : mid) = False
     | otherwise = eq pre pre' && eq post post' && find mid rest2
         where
@@ -55,9 +56,9 @@ matchRepats (Wildcard pre mid post) ys
 
 eq xs ys = length xs == length ys && all isJust (zipWith wildcard xs ys)
 
-matchRepats2 :: Wildcard [Wildcard String] -> [String] -> Maybe [String]
-matchRepats2 (Literal xs) ys = eq2 xs ys
-matchRepats2 (Wildcard pre mid post) ys
+matchWildcardMaybe :: Wildcard [Wildcard String] -> [String] -> Maybe [String]
+matchWildcardMaybe (Literal xs) ys = eq2 xs ys
+matchWildcardMaybe (Wildcard pre mid post) ys
     | length ys < sum (map length $ pre : post : mid) = Nothing
     | otherwise = do
             a <- eq2 pre pre'
@@ -91,7 +92,7 @@ matchOne Skip _ = False
 
 matchBoolWith :: Pats -> FilePath -> Bool
 matchBoolWith (Pats pat) = f . (\x -> if null x then [""] else x) . filter (/= ".") . split isPathSeparator
-    where f = matchRepats $ repats $ Pats pat
+    where f = matchWildcardBool $ toWildcard $ Pats pat
 
 
 -- | Like '?==', but returns 'Nothing' on if there is no match, otherwise 'Just' with the list
@@ -106,7 +107,7 @@ matchBoolWith (Pats pat) = f . (\x -> if null x then [""] else x) . filter (/= "
 --   Note that the @**@ will often contain a trailing @\/@, and even on Windows any
 --   @\\@ separators will be replaced by @\/@.
 matchWith :: Pats -> FilePath -> Maybe [String]
-matchWith ps = matchRepats2 (repats ps) . (\x -> if null x then [""] else x) . filter (/= ".") . split isPathSeparator
+matchWith ps = matchWildcardMaybe (toWildcard ps) . (\x -> if null x then [""] else x) . filter (/= ".") . split isPathSeparator
 
 
 ---------------------------------------------------------------------

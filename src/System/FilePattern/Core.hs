@@ -56,10 +56,6 @@ matchWildcardMaybe w o = fmap f $ wildcardBy (wildcardBy eqChar) w o
         f [] = []
 
 
-matchOne :: Pat -> String -> Bool
-matchOne (Stars x) y = isJust $ wildcardBy eqChar x y
-matchOne Skip _ = False
-
 
 matchBoolWith :: Pats -> FilePath -> Bool
 matchBoolWith pat = matchWildcardBool (toWildcard pat) .
@@ -158,6 +154,9 @@ walkWith patterns = (any (\p -> matchBoolWith (Pats p) "") ps2, f ps2)
                 fin = nubOrd $ mapMaybe final ps
                 nxt = groupSort $ concatMap next ps
 
+matchOne :: Pat -> String -> Bool
+matchOne (Stars x) y = isJust $ wildcardBy eqChar x y
+matchOne Skip _ = False
 
 next :: [Pat] -> [(Pat, [Pat])]
 next (Skip:xs) = (star,Skip:xs) : next xs

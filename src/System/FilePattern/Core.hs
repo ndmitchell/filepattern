@@ -44,7 +44,7 @@ eqChar :: Char -> Char -> Maybe Char
 eqChar x y = if x == y then Just x else Nothing
 
 matchWildcard :: Wildcard [Wildcard String] -> [String] -> Maybe [String]
-matchWildcard w o = fmap f $ wildcard (wildcard eqChar) w o
+matchWildcard w = fmap f . wildcard (wildcard eqChar) w
     where
         f :: [Either [[Either String String]] [String]] -> [String]
         f (Left x:xs) = rights (concat x) ++ f xs

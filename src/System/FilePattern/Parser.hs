@@ -14,6 +14,7 @@ import Data.IORef
 import System.IO.Unsafe
 import Prelude
 import System.FilePattern.Type
+import System.FilePattern.Wildcard
 import System.FilePath (isPathSeparator)
 
 

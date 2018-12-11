@@ -37,6 +37,7 @@ library
         System.FilePattern.ListBy
         System.FilePattern.Parser
         System.FilePattern.Type
+        System.FilePattern.Wildcard
 
 
 test-suite filepattern-test

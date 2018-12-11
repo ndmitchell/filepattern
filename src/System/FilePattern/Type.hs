@@ -4,16 +4,11 @@ module System.FilePattern.Type(
     FilePattern,
     Pats(..),
     Pat(..),
-    Wildcard(..),
-    wildcard,
     lit, fromLit,
     star
     ) where
 
-import Data.Functor
-import Data.List.Extra
-import System.FilePattern.ListBy
-import Prelude
+import System.FilePattern.Wildcard
 
 
 -- | A type synonym for file patterns, containing @**@ and @*@. For the syntax
@@ -30,26 +25,6 @@ type FilePattern = String
 -- | Parsed 'FilePattern'.
 newtype Pats = Pats {fromPats :: [Pat]}
     deriving (Eq,Show)
-
--- | Representing either literals, or wildcards
-data Wildcard a = Wildcard a [a] a -- ^ prefix [mid-parts] suffix
-                | Literal a -- ^ literal match
-    deriving (Show,Eq,Ord)
-
--- | Given a wildcard, and a test string, return the matches.
---   Only return the first (all patterns left-most) valid star matching.
-wildcard :: (a -> b -> Maybe c) -> Wildcard [a] -> [b] -> Maybe [Either [c] [b]]
-wildcard eq (Literal mid) x = (:[]) . Left <$> eqListBy eq mid x
-wildcard eq (Wildcard pre mid post) x = do
-    (pre, x) <- stripPrefixBy eq pre x
-    (x, post) <- stripSuffixBy eq post x
-    mid <- stripInfixes mid x
-    return $ [Left pre] ++ mid ++ [Left post]
-    where
-        stripInfixes [] x = Just [Right x]
-        stripInfixes (m:ms) y = do
-            (a,b,x) <- stripInfixBy eq m y
-            (\c -> Right a:Left b:c) <$> stripInfixes ms x
 
 
 data Pat = Skip -- ^ /**/

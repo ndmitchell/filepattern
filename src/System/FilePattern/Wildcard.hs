@@ -1,5 +1,15 @@
 
--- | The type of patterns and wildcards
+-- | The type of wildcards, which generalises to both patterns
+--   inside a filename and along patterns. e.g.
+--
+-- > *xy* = Wildcard [] ["xy"] []
+-- > **/xxx/yyy/** = Wildcard [] [[Literal "xxx", Literal "yyy"]] []
+--
+--   Some more examples focusing on the first type of pattern:
+--
+-- > xyz = Literal "xyz"
+-- > x*y*z = Wildcard "x" ["y"] ["z"]
+-- > x**z = Wildcard "x" [""] ["z"]
 module System.FilePattern.Wildcard(
     Wildcard(..),
     wildcard,

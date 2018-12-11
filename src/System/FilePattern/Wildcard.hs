@@ -13,12 +13,17 @@
 module System.FilePattern.Wildcard(
     Wildcard(..),
     wildcard,
+    equals
     ) where
 
 import Data.Functor
 import Data.List.Extra
 import System.FilePattern.ListBy
 import Prelude
+
+
+equals :: Eq a => a -> a -> Maybe ()
+equals x y = if x == y then Just () else Nothing
 
 
 -- | Representing either literals, or wildcards

@@ -41,11 +41,8 @@ toWildcard (Pats xs) = case map (map unstars) $ split (== Skip) xs of
     where unstars (Stars x) = x
           unstars Skip = error "toWildcard: impossible - already split on Skip"
 
-eqChar :: Char -> Char -> Maybe ()
-eqChar x y = if x == y then Just () else Nothing
-
 matchWildcard :: Wildcard [Wildcard String] -> [String] -> Maybe [String]
-matchWildcard w = fmap f . wildcard (wildcard eqChar) w
+matchWildcard w = fmap f . wildcard (wildcard equals) w
     where
         f :: [Either [[Either [()] String]] [String]] -> [String]
         f (Left x:xs) = rights (concat x) ++ f xs
@@ -151,7 +148,7 @@ walkWith patterns = (any (\p -> matchBoolWith (Pats p) "") ps2, f ps2)
                 nxt = groupSort $ concatMap next ps
 
 matchOne :: Pat -> String -> Bool
-matchOne (Stars x) y = isJust $ wildcard eqChar x y
+matchOne (Stars x) y = isJust $ wildcard equals x y
 matchOne Skip _ = False
 
 next :: [Pat] -> [(Pat, [Pat])]

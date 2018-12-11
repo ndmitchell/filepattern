@@ -4,11 +4,25 @@ module System.FilePattern.Type(
     FilePattern,
     Pats(..),
     Pat(..),
+    toWildcard,
     lit, fromLit,
     star
     ) where
 
 import System.FilePattern.Wildcard
+import Data.List.Extra
+
+
+-- | Convert a Pat to a Wildcard structure
+toWildcard :: Pats -> Wildcard [Wildcard String]
+toWildcard (Pats xs) = case map (map unstars) $ split (== Skip) xs of
+    [] -> error "toWildcard: impossible - split never returns []"
+    pre:xs -> case unsnoc xs of
+        Nothing -> Literal pre
+        Just (mid, post) -> Wildcard pre mid post
+    where unstars (Stars x) = x
+          unstars Skip = error "toWildcard: impossible - already split on Skip"
+
 
 
 -- | A type synonym for file patterns, containing @**@ and @*@. For the syntax

@@ -31,16 +31,6 @@ import System.FilePath (isPathSeparator)
 ---------------------------------------------------------------------
 -- PATTERNS
 
--- | Convert a Pat to a Wildcard structure
-toWildcard :: Pats -> Wildcard [Wildcard String]
-toWildcard (Pats xs) = case map (map unstars) $ split (== Skip) xs of
-    [] -> error "toWildcard: impossible - split never returns []"
-    pre:xs -> case unsnoc xs of
-        Nothing -> Literal pre
-        Just (mid, post) -> Wildcard pre mid post
-    where unstars (Stars x) = x
-          unstars Skip = error "toWildcard: impossible - already split on Skip"
-
 matchWildcard :: Wildcard [Wildcard String] -> [String] -> Maybe [String]
 matchWildcard w = fmap f . wildcard (wildcard equals) w
     where

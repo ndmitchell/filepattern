@@ -85,7 +85,7 @@ compatibleWith (x:xs) = all ((==) (specialsWith x) . specialsWith) xs
 --
 -- > p '?==' x ==> substitute (extract p x) p == x
 substituteWith :: Partial => String -> [String] -> (FilePattern, Pats) -> FilePath
-substituteWith func parts (pat, Pats ps)
+substituteWith func parts (pat, fromPats -> ps)
     | let want = sum $ map count ps, let got = length parts, want /= got =
         error $ func ++ " given the wrong number of parts, wanted " ++
                 show want ++ ", got " ++ show got ++
@@ -120,7 +120,7 @@ data Walk = Walk   (String -> (Bool, Maybe Walk))
           | WalkTo ([String], [(String,Walk)])
 
 walkWith :: [Pats] -> (Bool, Maybe Walk)
-walkWith patterns = (any (\p -> matchBoolWith (Pats p) "") ps2, f ps2)
+walkWith patterns = (any (\p -> matchBoolWith (mkPats p) "") ps2, f ps2)
     where
         ps2 = map fromPats patterns
 

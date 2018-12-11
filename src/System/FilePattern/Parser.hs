@@ -70,7 +70,7 @@ parseLit x = case split (== '*') x of
 
 
 parseLegacy :: FilePattern -> Pats
-parseLegacy x = Pats $ parseLexeme $ f x x
+parseLegacy x = mkPats $ parseLexeme $ f x x
     where
         -- first argument is the original full pattern, or "" if we've already warned
         f o "" = []
@@ -82,7 +82,7 @@ parseLegacy x = Pats $ parseLexeme $ f x x
 
 
 parse :: FilePattern -> Pats
-parse = Pats . parseLexeme . f
+parse = mkPats . parseLexeme . f
     where
         f "" = []
         f (x1:x2:xs) | isPathSeparator x1, isPathSeparator x2 = f (x2:xs)

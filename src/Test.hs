@@ -160,7 +160,7 @@ testLegacyWarning = do
 testParser :: Switch -> IO ()
 testParser Switch{..} = do
     let x # y = assertBool (res == y) "testParser" ["Name" #= name, "Input" #= x, "Expected" #= y, "Got" #= res]
-            where Pats res = parse x
+            where res = fromPats $ parse x
     "" # [lit ""]
     "x" # [lit "x"]
     "/" # [lit "",lit ""]

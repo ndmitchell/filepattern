@@ -2,7 +2,7 @@
 -- | The type of patterns and wildcards
 module System.FilePattern.Type(
     FilePattern,
-    Pats(..),
+    Pats, fromPats, mkPats,
     Pat(..),
     toWildcard,
     lit, fromLit,
@@ -12,6 +12,9 @@ module System.FilePattern.Type(
 import System.FilePattern.Wildcard
 import Data.List.Extra
 
+
+mkPats :: [Pat] -> Pats
+mkPats = Pats
 
 -- | Convert a Pat to a Wildcard structure
 toWildcard :: Pats -> Wildcard [Wildcard String]

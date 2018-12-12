@@ -38,18 +38,18 @@ assertException a parts msg fields = do
 (#=) a b = a ++ ": " ++ show b
 
 
-newtype Pattern = Pattern FilePattern deriving (Show,Eq)
-newtype Path    = Path    FilePath    deriving (Show,Eq)
+newtype ArbPattern = ArbPattern FilePattern deriving (Show,Eq)
+newtype ArbPath    = ArbPath    FilePath    deriving (Show,Eq)
 
 -- Since / and * are the only "interesting" elements, just add ab to round out the set
 
-instance Arbitrary Pattern where
-    arbitrary = fmap Pattern $ listOf $ elements "\\/*ab."
-    shrink (Pattern x) = map Pattern $ shrinkList (\x -> ['/' | x == '\\']) x
+instance Arbitrary ArbPattern where
+    arbitrary = fmap ArbPattern $ listOf $ elements "\\/*ab."
+    shrink (ArbPattern x) = map ArbPattern $ shrinkList (\x -> ['/' | x == '\\']) x
 
-instance Arbitrary Path where
-    arbitrary = fmap Path $ listOf $ elements "\\/ab."
-    shrink (Path x) = map Path $ shrinkList (\x -> ['/' | x == '\\']) x
+instance Arbitrary ArbPath where
+    arbitrary = fmap ArbPath $ listOf $ elements "\\/ab."
+    shrink (ArbPath x) = map ArbPath $ shrinkList (\x -> ['/' | x == '\\']) x
 
 
 ---------------------------------------------------------------------
@@ -354,7 +354,7 @@ testWalk Switch{..} = do
 testProperties :: Switch -> [String] -> IO ()
 testProperties switch@Switch{..} xs = do
     forM_ xs $ \x -> forM_ xs $ \y -> prop x y
-    Success{} <- quickCheckWithResult stdArgs{maxSuccess=10000} $ \(Pattern p) (Path x) ->
+    Success{} <- quickCheckWithResult stdArgs{maxSuccess=10000} $ \(ArbPattern p) (ArbPath x) ->
         (if matchBool p x then label "match" else property) $ unsafePerformIO $ prop p x >> return True
     return ()
     where

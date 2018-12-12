@@ -57,9 +57,7 @@ instance Arbitrary Path where
 -- SWITCHING
 
 data Switch = Switch
-    {name :: String
-    ,legacy :: Bool
-    ,parse :: FilePattern -> Pats
+    {parse :: FilePattern -> Pats
     ,matchBool :: FilePattern -> FilePath -> Bool
     ,match :: FilePattern -> FilePath -> Maybe [String]
     ,simple :: FilePattern -> Bool
@@ -68,9 +66,12 @@ data Switch = Switch
     ,walk :: [FilePattern] -> (Bool, Maybe Walk)
     }
 
+name = "System.FilePattern"
+legacy = False
+
 switches :: [Switch]
 switches =
-    [Switch "System.FilePattern"        False Parser.parse       (New.?==) New.match New.simple New.compatible New.substitute New.walk
+    [Switch Parser.parse (New.?==) New.match New.simple New.compatible New.substitute New.walk
     ]
 
 -- Unsafe because it traces all arguments going through.
@@ -84,7 +85,7 @@ unsafeSwitchTrace Switch{..} = do
             return $ f xs
     let add f x = adds (f . head) [x]
     let get = Set.toList <$> readIORef seen
-    return $ (,) get $ Switch name legacy
+    return $ (,) get $ Switch
         (add parse)
         (add . add matchBool)
         (add . add match)

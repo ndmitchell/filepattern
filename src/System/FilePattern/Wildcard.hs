@@ -14,11 +14,13 @@
 module System.FilePattern.Wildcard(
     Wildcard(..),
     wildcardMatch,
+    wildcardSubst,
     equals
     ) where
 
 import Data.Functor
 import Data.List.Extra
+import Control.Monad.Extra
 import System.FilePattern.ListBy
 import Prelude
 
@@ -46,3 +48,10 @@ wildcardMatch eq (Wildcard pre mid post) x = do
         stripInfixes (m:ms) y = do
             (a,b,x) <- stripInfixBy eq m y
             (\c -> Right a:Left b:c) <$> stripInfixes ms x
+
+
+wildcardSubst :: Applicative m => m b -> (a -> m b) -> Wildcard a -> m [b]
+wildcardSubst gap lit (Literal x) = (:[]) <$> lit x
+wildcardSubst gap lit (Wildcard pre mid post) = (:) <$>
+    lit pre <*>
+    (concat <$> (flip traverse (mid ++ [post]) $ \v -> (\a b -> [a,b]) <$> gap <*> lit v))

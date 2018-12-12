@@ -32,12 +32,14 @@ import System.FilePath (isPathSeparator)
 ---------------------------------------------------------------------
 -- PATTERNS
 
-matchWildcard :: Pattern -> Path -> Maybe [String]
+data Part = Part String | Parts [String]
+
+matchWildcard :: Pattern -> Path -> Maybe [Part]
 matchWildcard (Pattern w) (Path x) = f <$> wildcard (wildcard equals) w x
     where
-        f :: [Either [[Either [()] String]] [String]] -> [String]
-        f (Left x:xs) = rights (concat x) ++ f xs
-        f (Right x:xs) = concatMap (++ "/") x : f xs
+        f :: [Either [[Either [()] String]] [String]] -> [Part]
+        f (Left x:xs) = map Part (rights $ concat x) ++ f xs
+        f (Right x:xs) = Parts x : f xs
         f [] = []
 
 
@@ -57,9 +59,12 @@ matchBoolWith pat = isJust . matchWith pat
 --   Note that the @**@ will often contain a trailing @\/@, and even on Windows any
 --   @\\@ separators will be replaced by @\/@.
 matchWith :: Pats -> FilePath -> Maybe [String]
-matchWith ps = matchWildcard (toWildcard ps) .
+matchWith ps = fmap (map f) . matchWildcard (toWildcard ps) .
     Path . (\x -> if null x then [""] else x) . filter (/= ".") .
     split isPathSeparator
+    where
+        f (Part x) = x
+        f (Parts x) = concatMap (++ "/") x
 
 
 ---------------------------------------------------------------------

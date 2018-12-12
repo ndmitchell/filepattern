@@ -20,8 +20,8 @@ mkPats :: [Pat] -> Pats
 mkPats = Pats
 
 -- | Convert a Pat to a Wildcard structure
-toWildcard :: Pats -> Wildcard [Wildcard String]
-toWildcard (Pats xs) = case map (map unstars) $ split (== Skip) xs of
+toWildcard :: Pats -> Pattern
+toWildcard (Pats xs) = Pattern $ case map (map unstars) $ split (== Skip) xs of
     [] -> error "toWildcard: impossible - split never returns []"
     pre:xs -> case unsnoc xs of
         Nothing -> Literal pre

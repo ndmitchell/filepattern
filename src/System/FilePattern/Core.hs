@@ -31,8 +31,8 @@ import System.FilePath (isPathSeparator)
 ---------------------------------------------------------------------
 -- PATTERNS
 
-matchWildcard :: Wildcard [Wildcard String] -> [String] -> Maybe [String]
-matchWildcard w = fmap f . wildcard (wildcard equals) w
+matchWildcard :: Pattern -> Path -> Maybe [String]
+matchWildcard (Pattern w) (Path x) = f <$> wildcard (wildcard equals) w x
     where
         f :: [Either [[Either [()] String]] [String]] -> [String]
         f (Left x:xs) = rights (concat x) ++ f xs
@@ -57,7 +57,7 @@ matchBoolWith pat = isJust . matchWith pat
 --   @\\@ separators will be replaced by @\/@.
 matchWith :: Pats -> FilePath -> Maybe [String]
 matchWith ps = matchWildcard (toWildcard ps) .
-    (\x -> if null x then [""] else x) . filter (/= ".") .
+    Path . (\x -> if null x then [""] else x) . filter (/= ".") .
     split isPathSeparator
 
 

@@ -208,15 +208,14 @@ testMatch Switch{..} = do
             where res = match a b
     let yes a b c = f a b $ Just c
     let no a b = f a b Nothing
-    let old a b c = f a b $ Nothing -- works only with the old one
-    let diff a b c d = yes a b $ d -- works differently with old and new
+    let diff a b c d = yes a b $ d -- works differently with no and new
 
-    old "//*.c" "foo/bar/baz.c" ["foo/bar/","baz"]
+    no "//*.c" "foo/bar/baz.c"
     diff "//*.c" "/baz.c" ["/","baz"] ["baz"]
     yes "**/*.c" "foo/bar/baz.c" ["foo/bar/","baz"]
     yes ("**" </> "*.c") ("foo/bar" </> "baz.c") ["foo/bar/","baz"]
     yes "*.c" "baz.c" ["baz"]
-    old "//*.c" "baz.c" ["","baz"]
+    no "//*.c" "baz.c"
     yes "**/*.c" "baz.c" ["","baz"]
     yes "**/*a.txt" "foo/bar/testa.txt" ["foo/bar/","test"]
     no "**/*.c" "baz.txt"
@@ -244,25 +243,25 @@ testMatch Switch{..} = do
     yes "**/*.c" ("bar" </> "baz" </> "foo.c") ["bar/baz/","foo"]
     diff "//*" "/bar" ["/","bar"] ["bar"]
     yes "**/*" "/bar" ["/","bar"]
-    old "/bob//foo" "/bob/this/test/foo" ["this/test/"]
+    no "/bob//foo" "/bob/this/test/foo"
     diff "/bob//foo" "/bob/foo" [""] []
     yes "/bob/**/foo" "/bob/this/test/foo" ["this/test/"]
     no "/bob//foo" "bob/this/test/foo"
     no "/bob/**/foo" "bob/this/test/foo"
-    old "bob//foo/" "bob/this/test/foo/" ["this/test/"]
+    no "bob//foo/" "bob/this/test/foo/"
     diff "bob//foo/" "bob/foo/" [""] []
     yes "bob/**/foo/" "bob/this/test/foo/" ["this/test/"]
     no "bob//foo/" "bob/this/test/foo"
     no "bob/**/foo/" "bob/this/test/foo"
     yes ("**" </> "*a*.txt") "testada.txt" ["","test","da"]
-    old "a//" "a" [""]
+    no "a//" "a"
     yes "a/**" "a" [""]
     diff "a//" "a/" ["/"] []
-    old "/a//" "/a" [""]
+    no "/a//" "/a"
     yes "a/**" "a" [""]
     diff "/a//" "/a/" ["/"] []
     yes "/a/**" "/a" [""]
-    old "///a//" "/a" ["","",""]
+    no "///a//" "/a"
     diff "///a//" "/a/" ["","","/"] []
     yes "**/a/**" "/a" ["/",""]
     no "///" ""

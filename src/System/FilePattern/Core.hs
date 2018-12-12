@@ -17,7 +17,6 @@ module System.FilePattern.Core(
     ) where
 
 import Control.Exception.Extra
-import Data.Either.Extra
 import Data.List.Extra
 import Data.Maybe
 import Data.Tuple.Extra
@@ -31,17 +30,6 @@ import System.FilePath (isPathSeparator)
 
 ---------------------------------------------------------------------
 -- PATTERNS
-
-data Part = Part String | Parts [String]
-
-matchWildcard :: Pattern -> Path -> Maybe [Part]
-matchWildcard (Pattern w) (Path x) = f <$> wildcard (wildcard equals) w x
-    where
-        f :: [Either [[Either [()] String]] [String]] -> [Part]
-        f (Left x:xs) = map Part (rights $ concat x) ++ f xs
-        f (Right x:xs) = Parts x : f xs
-        f [] = []
-
 
 matchBoolWith :: Pats -> FilePath -> Bool
 matchBoolWith pat = isJust . matchWith pat
@@ -59,7 +47,7 @@ matchBoolWith pat = isJust . matchWith pat
 --   Note that the @**@ will often contain a trailing @\/@, and even on Windows any
 --   @\\@ separators will be replaced by @\/@.
 matchWith :: Pats -> FilePath -> Maybe [String]
-matchWith ps = fmap (map f) . matchWildcard (toWildcard ps) .
+matchWith ps = fmap (map f) . match (toWildcard ps) .
     Path . (\x -> if null x then [""] else x) . filter (/= ".") .
     split isPathSeparator
     where

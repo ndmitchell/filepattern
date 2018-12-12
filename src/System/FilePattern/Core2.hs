@@ -3,11 +3,13 @@
 module System.FilePattern.Core2(
     FilePattern,
     Pattern(..), parsePattern,
-    Path(..), parsePath
+    Path(..), parsePath,
+    Part(..), match
     ) where
 
 import System.FilePattern.Wildcard
 import System.FilePath (isPathSeparator)
+import Data.Either.Extra
 import Data.List.Extra
 
 
@@ -43,3 +45,14 @@ parsePattern = Pattern . fmap (map $ f '*') . f "**" . split0 isPathSeparator
             pre:mid_post -> case unsnoc mid_post of
                 Nothing -> Literal pre
                 Just (mid, post) -> Wildcard pre mid post
+
+
+data Part = Part String | Parts [String]
+
+match :: Pattern -> Path -> Maybe [Part]
+match (Pattern w) (Path x) = f <$> wildcard (wildcard equals) w x
+    where
+        f :: [Either [[Either [()] String]] [String]] -> [Part]
+        f (Left x:xs) = map Part (rights $ concat x) ++ f xs
+        f (Right x:xs) = Parts x : f xs
+        f [] = []

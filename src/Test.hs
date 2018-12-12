@@ -10,7 +10,6 @@ import Data.Maybe
 import System.FilePattern.Type
 import System.FilePattern(Walk(..))
 import qualified System.FilePattern as New
-import qualified System.FilePattern.Legacy as Old
 import qualified System.FilePattern.Parser as Parser
 import qualified Data.Set as Set
 import System.FilePath(isPathSeparator, (</>))
@@ -72,7 +71,6 @@ data Switch = Switch
 switches :: [Switch]
 switches =
     [Switch "System.FilePattern"        False Parser.parse       (New.?==) New.match New.simple New.compatible New.substitute New.walk
-    ,Switch "System.FilePattern.Legacy" True  Parser.parseLegacy (Old.?==) Old.match Old.simple Old.compatible Old.substitute Old.walk
     ]
 
 -- Unsafe because it traces all arguments going through.
@@ -125,7 +123,6 @@ main = do
     let dot x = putStr "." >> x
     forM_ switches $ \switch@Switch{..} -> do
         putStr $ "Testing " ++ name ++ " "
-        dot $ when legacy testLegacyWarning
         (get, s) <- unsafeSwitchTrace switch
         dot $ testParser s
         dot $ testSimple s
@@ -135,26 +132,6 @@ main = do
         dot $ testWalk s
         putStr " "
         testProperties switch =<< get
-
-
--- Check that 'addUnsafeLegacyWarning' works and fires at the right times
-testLegacyWarning :: IO ()
-testLegacyWarning = do
-    ref <- newIORef Nothing
-    Old.addUnsafeLegacyWarning $ \x -> modifyIORef ref $ fmap (++ [x])
-
-    let x # b = do
-            writeIORef ref $ Just []
-            evaluate $ Old.compatible [x,x]
-            got <- readIORef ref
-            writeIORef ref Nothing -- to avoid a memory leak
-            let expected = Just $ if b then [x,x] else []
-            assertBool (expected == got) "legacyWarning" ["Input" #= x, "Expected" #= expected, "Got" #= got]
-
-    "foo/**/x" # False
-    "foo/x//y" # True
-    "foo//x//y" # True
-    "foo/**/x/*.foo" # False
 
 
 testParser :: Switch -> IO ()

@@ -31,7 +31,6 @@ library
         filepath
     exposed-modules:
         System.FilePattern
-        System.FilePattern.Legacy
     other-modules:
         System.FilePattern.Core
         System.FilePattern.ListBy
@@ -55,7 +54,6 @@ test-suite filepattern-test
     other-modules:
         System.FilePattern
         System.FilePattern.Core
-        System.FilePattern.Legacy
         System.FilePattern.ListBy
         System.FilePattern.Parser
         System.FilePattern.Type

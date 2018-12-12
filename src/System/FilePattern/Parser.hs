@@ -2,40 +2,15 @@
 
 -- | Parsers for the flavours of 'FilePattern'.
 module System.FilePattern.Parser(
-    parse,
-    parseLegacy,
-    addUnsafeLegacyWarning
+    parse
     ) where
 
-import Control.Monad
 import Data.List.Extra
 import Data.Maybe
-import Data.IORef
-import System.IO.Unsafe
 import Prelude
 import System.FilePattern.Type
 import System.FilePattern.Wildcard
 import System.FilePath (isPathSeparator)
-
-
----------------------------------------------------------------------
--- LEGACY WARNING
-
-{-# NOINLINE legacyWarning #-}
-legacyWarning :: IORef (FilePattern -> IO ())
-legacyWarning = unsafePerformIO $ newIORef $ const $ return ()
-
--- | Add a callback that is run on every legacy pattern containing @\/\/@.
---   Note that the callback will be run via 'unsafePerformIO'.
-addUnsafeLegacyWarning :: (FilePattern -> IO ()) -> IO ()
-addUnsafeLegacyWarning act = atomicModifyIORef legacyWarning $ \old -> (old >> act, ())
-
-{-# NOINLINE traceLegacyWarning #-}
-traceLegacyWarning :: FilePattern -> a -> a
-traceLegacyWarning pat x = unsafePerformIO $ do
-    warn <- readIORef legacyWarning
-    warn pat
-    return x
 
 
 ---------------------------------------------------------------------
@@ -67,18 +42,6 @@ parseLit x = case split (== '*') x of
     pre:xs -> case unsnoc xs of
         Nothing -> error "parseLit: Stars check failed"
         Just (mid,post) -> Stars $ Wildcard pre mid post
-
-
-parseLegacy :: FilePattern -> Pats
-parseLegacy x = mkPats $ parseLexeme $ f x x
-    where
-        -- first argument is the original full pattern, or "" if we've already warned
-        f o "" = []
-        f o (x1:x2:xs) | isPathSeparator x1, isPathSeparator x2 =
-            (if o == "" then id else traceLegacyWarning o) $ SlashSlash : f "" xs
-        f o (x1:xs) | isPathSeparator x1 = Slash : f o xs
-        f o xs = Str a : f o b
-            where (a,b) = break isPathSeparator xs
 
 
 parse :: FilePattern -> Pats

@@ -10,6 +10,7 @@ import System.FilePattern.Type
 import System.FilePattern(Walk(..))
 import qualified System.FilePattern as New
 import qualified System.FilePattern.Parser as Parser
+import System.FilePattern.Core2
 import qualified Data.Set as Set
 import System.FilePath(isPathSeparator, (</>))
 import Data.IORef.Extra

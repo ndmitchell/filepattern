@@ -24,6 +24,7 @@ import Data.Tuple.Extra
 import Control.Applicative
 import Prelude
 import System.FilePattern.Type
+import System.FilePattern.Core2
 import System.FilePattern.Wildcard
 import System.FilePath (isPathSeparator)
 

@@ -10,6 +10,7 @@ import Data.Maybe
 import Prelude
 import System.FilePattern.Type
 import System.FilePattern.Wildcard
+import System.FilePattern.Core2
 import System.FilePath (isPathSeparator)
 
 

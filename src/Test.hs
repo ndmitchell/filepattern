@@ -1,4 +1,3 @@
-{-# OPTIONS_GHC -fno-warn-deprecations #-} -- Because .Legacy is deprecated
 {-# LANGUAGE RecordWildCards #-}
 
 module Main(main) where

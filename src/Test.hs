@@ -331,11 +331,10 @@ testWalk Switch{..} = do
     let shw (a, b) = "(" ++ show a ++ "," ++ maybe "Nothing" ((++) "Just " . showWalk) b ++ ")"
     let both p w = assertBool (shw res == shw w) "walk" ["Pattern" #= p, "Expected" #= shw w, "Got" #= shw res]
             where res = walk p
-    let diff p w1 w2 = both p $ w2
     let walk_ = Walk undefined
 
     both ["*.xml"] (False, Just walk_)
-    diff ["//*.xml"] (False, Just walk_) (False, Just $ WalkTo ([], [("",walk_)]))
+    both ["//*.xml"] (False, Just $ WalkTo ([], [("",walk_)]))
     both ["**/*.xml"] (False, Just walk_)
     both ["foo//*.xml"] (False, Just $ WalkTo ([], [("foo",walk_)]))
     both ["foo/**/*.xml"] (False, Just $ WalkTo ([], [("foo",walk_)]))
@@ -348,7 +347,7 @@ testWalk Switch{..} = do
     both ["bar/*.xml","baz/**/*.c"] (False, Just $ WalkTo ([],[("bar",walk_),("baz",walk_)]))
     both [] (False, Nothing)
     both [""] (True, Just $ WalkTo ([""], []))
-    diff ["//"] (True, Just walk_) (False, Just $ WalkTo ([], [("",WalkTo ([""],[]))]))
+    both ["//"] (False, Just $ WalkTo ([], [("",WalkTo ([""],[]))]))
     both ["**"] (True, Just walk_)
 
 

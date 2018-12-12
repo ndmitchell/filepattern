@@ -208,10 +208,9 @@ testMatch Switch{..} = do
             where res = match a b
     let yes a b c = f a b $ Just c
     let no a b = f a b Nothing
-    let diff a b c d = yes a b $ d -- works differently with no and new
 
     no "//*.c" "foo/bar/baz.c"
-    diff "//*.c" "/baz.c" ["/","baz"] ["baz"]
+    yes "//*.c" "/baz.c" ["baz"]
     yes "**/*.c" "foo/bar/baz.c" ["foo/bar/","baz"]
     yes ("**" </> "*.c") ("foo/bar" </> "baz.c") ["foo/bar/","baz"]
     yes "*.c" "baz.c" ["baz"]
@@ -235,44 +234,44 @@ testMatch Switch{..} = do
     no "foo/**/bar" "foobar/bar"
     no "foo//bar" "foo/foobar"
     no "foo/**/bar" "foo/foobar"
-    diff "foo//bar" "foo/bar" [""] []
+    yes "foo//bar" "foo/bar" []
     yes "foo/**/bar" "foo/bar" [""]
     yes "foo/bar" ("foo" </> "bar") []
     yes ("foo" </> "bar") "foo/bar" []
     yes ("foo" </> "bar") ("foo" </> "bar") []
     yes "**/*.c" ("bar" </> "baz" </> "foo.c") ["bar/baz/","foo"]
-    diff "//*" "/bar" ["/","bar"] ["bar"]
+    yes "//*" "/bar" ["bar"]
     yes "**/*" "/bar" ["/","bar"]
     no "/bob//foo" "/bob/this/test/foo"
-    diff "/bob//foo" "/bob/foo" [""] []
+    yes "/bob//foo" "/bob/foo" []
     yes "/bob/**/foo" "/bob/this/test/foo" ["this/test/"]
     no "/bob//foo" "bob/this/test/foo"
     no "/bob/**/foo" "bob/this/test/foo"
     no "bob//foo/" "bob/this/test/foo/"
-    diff "bob//foo/" "bob/foo/" [""] []
+    yes "bob//foo/" "bob/foo/" []
     yes "bob/**/foo/" "bob/this/test/foo/" ["this/test/"]
     no "bob//foo/" "bob/this/test/foo"
     no "bob/**/foo/" "bob/this/test/foo"
     yes ("**" </> "*a*.txt") "testada.txt" ["","test","da"]
     no "a//" "a"
     yes "a/**" "a" [""]
-    diff "a//" "a/" ["/"] []
+    yes "a//" "a/" []
     no "/a//" "/a"
     yes "a/**" "a" [""]
-    diff "/a//" "/a/" ["/"] []
+    yes "/a//" "/a/" []
     yes "/a/**" "/a" [""]
     no "///a//" "/a"
-    diff "///a//" "/a/" ["","","/"] []
+    yes "///a//" "/a/" []
     yes "**/a/**" "/a" ["/",""]
     no "///" ""
-    diff "///" "/" ["",""] []
+    yes "///" "/" []
     yes "/**" "/" ["/"]
     yes "**/" "a/" ["a/"]
-    diff "////" "/" ["","//"] []
+    yes "////" "/" []
     yes "**/**" "" ["","/"]
-    diff "x///y" "x/y" [""] []
+    yes "x///y" "x/y" []
     yes "x/**/y" "x/y" [""]
-    diff "x///" "x/" [""] []
+    yes "x///" "x/" []
     yes "x/**/" "x/" [""]
     yes "x/**/" "x/foo/" ["foo/"]
     no "x///" "x"
@@ -280,7 +279,7 @@ testMatch Switch{..} = do
     yes "x/**/" "x/foo/bar/" ["foo/bar/"]
     no "x///" "x/foo/bar"
     no "x/**/" "x/foo/bar"
-    diff "x///y" "x/y" [""] []
+    yes "x///y" "x/y" []
     yes "x/**/*/y" "x/z/y" ["","z"]
     yes "" "" []
     no "" "y"
@@ -288,14 +287,14 @@ testMatch Switch{..} = do
 
     yes "*/*" "x/y" ["x","y"]
     no "*/*" "x"
-    diff "//*" "/x" ["/","x"] ["x"]
+    yes "//*" "/x" ["x"]
     yes "**/*" "x" ["","x"]
-    diff "//*" "/" ["/",""] [""]
+    yes "//*" "/" [""]
     yes "**/*" "" ["",""]
-    diff "*//" "x/" ["x","/"] ["x"]
+    yes "*//" "x/" ["x"]
     yes "*/**" "x" ["x",""]
-    diff "*//" "/" ["","/"] [""]
-    diff "*//*" "x/y" ["x","","y"] ["x","y"]
+    yes "*//" "/" [""]
+    yes "*//*" "x/y" ["x","y"]
     yes "*/**/*" "x/y" ["x","","y"]
     no "*//*" ""
     no "*/**/*" ""
@@ -303,9 +302,9 @@ testMatch Switch{..} = do
     no "*/**/*" "x"
     no "*//*//*" "x/y"
     no "*/**/*/**/*" "x/y"
-    diff "//*/" "//" ["/",""] [""]
+    yes "//*/" "//" [""]
     yes "**/*/" "/" ["",""]
-    diff "*/////" "/" ["","",""] [""]
+    yes "*/////" "/" [""]
     yes "*/**/**/" "/" ["","",""]
     no "b*b*b*//" "bb"
     no "b*b*b*/**" "bb"

@@ -132,7 +132,7 @@ walkWith patterns = (any (\p -> matchBoolWith (mkPats p) "") ps2, f ps2)
                 nxt = groupSort $ concatMap next ps
 
 matchOne :: Pat -> String -> Bool
-matchOne (Stars x) y = isJust $ wildcard equals x y
+matchOne (Stars x) y = isJust $ wildcardMatch equals x y
 matchOne Skip _ = False
 
 next :: [Pat] -> [(Pat, [Pat])]

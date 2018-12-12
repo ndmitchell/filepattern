@@ -50,7 +50,7 @@ parsePattern = Pattern . fmap (map $ f '*') . f "**" . split0 isPathSeparator
 data Part = Part String | Parts [String]
 
 match :: Pattern -> Path -> Maybe [Part]
-match (Pattern w) (Path x) = f <$> wildcard (wildcard equals) w x
+match (Pattern w) (Path x) = f <$> wildcardMatch (wildcardMatch equals) w x
     where
         f :: [Either [[Either [()] String]] [String]] -> [Part]
         f (Left x:xs) = map Part (rights $ concat x) ++ f xs

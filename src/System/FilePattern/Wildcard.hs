@@ -13,7 +13,7 @@
 -- > x**z = Wildcard "x" [""] ["z"]
 module System.FilePattern.Wildcard(
     Wildcard(..),
-    wildcard,
+    wildcardMatch,
     equals
     ) where
 
@@ -34,9 +34,9 @@ data Wildcard a = Wildcard a [a] a -- ^ prefix [mid-parts] suffix
 
 -- | Given a wildcard, and a test string, return the matches.
 --   Only return the first (all patterns left-most) valid star matching.
-wildcard :: (a -> b -> Maybe c) -> Wildcard [a] -> [b] -> Maybe [Either [c] [b]]
-wildcard eq (Literal mid) x = (:[]) . Left <$> eqListBy eq mid x
-wildcard eq (Wildcard pre mid post) x = do
+wildcardMatch :: (a -> b -> Maybe c) -> Wildcard [a] -> [b] -> Maybe [Either [c] [b]]
+wildcardMatch eq (Literal mid) x = (:[]) . Left <$> eqListBy eq mid x
+wildcardMatch eq (Wildcard pre mid post) x = do
     (pre, x) <- stripPrefixBy eq pre x
     (x, post) <- stripSuffixBy eq post x
     mid <- stripInfixes mid x

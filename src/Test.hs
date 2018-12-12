@@ -66,7 +66,6 @@ data Switch = Switch
     }
 
 name = "System.FilePattern"
-legacy = False
 
 switches :: [Switch]
 switches =
@@ -173,10 +172,10 @@ testSimple Switch{..} = do
     let x # y = assertBool (res == y) "simple" ["Name" #= name, "Input" #= x, "Expected" #= y, "Got" #= res]
             where res = simple x
     "a*b" # False
-    "a//b" # not legacy
+    "a//b" # True
     "a/**/b" # False
     "/a/b/cccc_" # True
-    "a///b" # not legacy
+    "a///b" # True
     "a/**/b" # False
 
 
@@ -188,7 +187,7 @@ testCompatible Switch{..} = do
     ["foo/**/*"] # True
     ["//*a.txt","foo//a*.txt"] # True
     ["**/*a.txt","foo/**/a*.txt"] # True
-    ["//*a.txt","foo/**/a*.txt"] # legacy
+    ["//*a.txt","foo/**/a*.txt"] # False
     ["//*a.txt","foo//a*.*txt"] # False
     ["**/*a.txt","foo/**/a*.*txt"] # False
 
@@ -197,9 +196,7 @@ testSubstitute :: Switch -> IO ()
 testSubstitute Switch{..} = do
     let f a b c = assertBool (res == c) "substitute" ["Name" #= name, "Parts" #= a, "Pattern" #= b, "Expected" #= c, "Got" #= res]
             where res = substitute a b
-    when legacy $ f ["","test","da"] "//*a*.txt" "testada.txt"
     f ["","test","da"] "**/*a*.txt" "testada.txt"
-    when legacy $ f ["foo/bar/","test"] "//*a.txt" "foo/bar/testa.txt"
     f ["foo/bar/","test"] "**/*a.txt" "foo/bar/testa.txt"
     let deep = void . evaluate . length . show
     -- error if the number of replacements is wrong

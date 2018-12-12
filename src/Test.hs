@@ -65,8 +65,6 @@ data Switch = Switch
     ,walk :: [FilePattern] -> (Bool, Maybe Walk)
     }
 
-name = "System.FilePattern"
-
 switches :: [Switch]
 switches =
     [Switch Parser.parse (New.?==) New.match New.simple New.compatible New.substitute New.walk
@@ -121,7 +119,7 @@ main :: IO ()
 main = do
     let dot x = putStr "." >> x
     forM_ switches $ \switch@Switch{..} -> do
-        putStr $ "Testing " ++ name ++ " "
+        putStr $ "Testing "
         (get, s) <- unsafeSwitchTrace switch
         dot $ testParser s
         dot $ testSimple s
@@ -135,7 +133,7 @@ main = do
 
 testParser :: Switch -> IO ()
 testParser Switch{..} = do
-    let x # y = assertBool (res == y) "testParser" ["Name" #= name, "Input" #= x, "Expected" #= y, "Got" #= res]
+    let x # y = assertBool (res == y) "testParser" ["Input" #= x, "Expected" #= y, "Got" #= res]
             where res = fromPats $ parse x
     "" # [lit ""]
     "x" # [lit "x"]
@@ -169,7 +167,7 @@ testParser Switch{..} = do
 
 testSimple :: Switch -> IO ()
 testSimple Switch{..} = do
-    let x # y = assertBool (res == y) "simple" ["Name" #= name, "Input" #= x, "Expected" #= y, "Got" #= res]
+    let x # y = assertBool (res == y) "simple" ["Input" #= x, "Expected" #= y, "Got" #= res]
             where res = simple x
     "a*b" # False
     "a//b" # True
@@ -181,7 +179,7 @@ testSimple Switch{..} = do
 
 testCompatible :: Switch -> IO ()
 testCompatible Switch{..} = do
-    let x # y = assertBool (res == y) "compatible" ["Name" #= name, "Input" #= x, "Expected" #= y, "Got" #= res]
+    let x # y = assertBool (res == y) "compatible" ["Input" #= x, "Expected" #= y, "Got" #= res]
             where res = compatible x
     [] # True
     ["foo/**/*"] # True
@@ -194,7 +192,7 @@ testCompatible Switch{..} = do
 
 testSubstitute :: Switch -> IO ()
 testSubstitute Switch{..} = do
-    let f a b c = assertBool (res == c) "substitute" ["Name" #= name, "Parts" #= a, "Pattern" #= b, "Expected" #= c, "Got" #= res]
+    let f a b c = assertBool (res == c) "substitute" ["Parts" #= a, "Pattern" #= b, "Expected" #= c, "Got" #= res]
             where res = substitute a b
     f ["","test","da"] "**/*a*.txt" "testada.txt"
     f ["foo/bar/","test"] "**/*a.txt" "foo/bar/testa.txt"
@@ -206,7 +204,7 @@ testSubstitute Switch{..} = do
 
 testMatch :: Switch -> IO ()
 testMatch Switch{..} = do
-    let f a b c = assertBool (res == c) "match" ["Name" #= name, "Pattern" #= a, "File" #= b, "Expected" #= c, "Got" #= res]
+    let f a b c = assertBool (res == c) "match" ["Pattern" #= a, "File" #= b, "Expected" #= c, "Got" #= res]
             where res = match a b
     let yes a b c = f a b $ Just c
     let no a b = f a b Nothing
@@ -332,7 +330,7 @@ testMatch Switch{..} = do
 testWalk :: Switch -> IO ()
 testWalk Switch{..} = do
     let shw (a, b) = "(" ++ show a ++ "," ++ maybe "Nothing" ((++) "Just " . showWalk) b ++ ")"
-    let both p w = assertBool (shw res == shw w) "walk" ["Name" #= name, "Pattern" #= p, "Expected" #= shw w, "Got" #= shw res]
+    let both p w = assertBool (shw res == shw w) "walk" ["Pattern" #= p, "Expected" #= shw w, "Got" #= shw res]
             where res = walk p
     let diff p w1 w2 = both p $ w2
     let walk_ = Walk undefined
@@ -365,7 +363,7 @@ testProperties switch@Switch{..} xs = do
         prop :: FilePattern -> FilePath -> IO ()
         prop pat file = do
             let b = matchBool pat file
-            let fields = ["Name" #= name, "Pattern" #= pat, "File" #= file, "?==" #= b]
+            let fields = ["Pattern" #= pat, "File" #= file, "?==" #= b]
             let res = match pat file in assertBool (b == isJust (match pat file)) "match" $ fields ++ ["match" #= res]
             let res = walkerMatch switch pat file in assertBool (b == res) "walker" $ fields ++ ["walker" #= res]
             let res = compatible [pat,pat] in assertBool res "compatible" fields

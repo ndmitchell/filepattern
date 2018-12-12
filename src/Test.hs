@@ -145,28 +145,28 @@ testParser Switch{..} = do
     "x/" # [lit "x",lit ""]
     "/x" # [lit "",lit "x"]
     "x/y" # [lit "x",lit "y"]
-    "//" # if legacy then [Skip] else [lit "", lit ""]
+    "//" # [lit "", lit ""]
     "**" # [Skip]
-    "//x" # if legacy then [Skip, lit "x"] else [lit "", lit "x"]
+    "//x" # [lit "", lit "x"]
     "**/x" # [Skip, lit "x"]
-    "x//" # if legacy then [lit "x", Skip] else [lit "x", lit ""]
+    "x//" # [lit "x", lit ""]
     "x/**" # [lit "x", Skip]
-    "x//y" # if legacy then [lit "x",Skip, lit "y"] else [lit "x", lit "y"]
-    "///" # if legacy then [star, Skip, lit ""] else [lit "", lit ""]
+    "x//y" # [lit "x", lit "y"]
+    "///" # [lit "", lit ""]
     "**/**" # [Skip,Skip]
     "**/**/" # [Skip, Skip, lit ""]
-    "///x" # if legacy then [star, Skip, lit "x"] else [lit "", lit "x"]
+    "///x" # [lit "", lit "x"]
     "**/x" # [Skip, lit "x"]
-    "x///" # if legacy then [lit "x", Skip, lit ""] else [lit "x", lit ""]
+    "x///" # [lit "x", lit ""]
     "x/**/" # [lit "x", Skip, lit ""]
-    "x///y" # if legacy then [lit "x",Skip, lit "y"] else [lit "x", lit "y"]
+    "x///y" # [lit "x", lit "y"]
     "x/**/y" # [lit "x",Skip, lit "y"]
-    "////" # if legacy then [Skip, Skip] else [lit "", lit ""]
+    "////" # [lit "", lit ""]
     "**/**/**" # [Skip, Skip, Skip]
-    "////x" # if legacy then [Skip, Skip, lit "x"] else [lit "", lit "x"]
-    "x////" # if legacy then [lit "x", Skip, Skip] else [lit "x", lit ""]
-    "x////y" # if legacy then [lit "x",Skip, Skip, lit "y"] else [lit "x", lit "y"]
-    "**//x" # if legacy then [Skip, Skip, lit "x"] else [Skip, lit "x"]
+    "////x" # [lit "", lit "x"]
+    "x////" # [lit "x", lit ""]
+    "x////y" # [lit "x", lit "y"]
+    "**//x" # [Skip, lit "x"]
 
 
 testSimple :: Switch -> IO ()
@@ -214,8 +214,8 @@ testMatch Switch{..} = do
             where res = match a b
     let yes a b c = f a b $ Just c
     let no a b = f a b Nothing
-    let old a b c = f a b $ if legacy then Just c else Nothing -- works only with the old one
-    let diff a b c d = yes a b $ if legacy then c else d -- works differently with old and new
+    let old a b c = f a b $ Nothing -- works only with the old one
+    let diff a b c d = yes a b $ d -- works differently with old and new
 
     old "//*.c" "foo/bar/baz.c" ["foo/bar/","baz"]
     diff "//*.c" "/baz.c" ["/","baz"] ["baz"]
@@ -338,7 +338,7 @@ testWalk Switch{..} = do
     let shw (a, b) = "(" ++ show a ++ "," ++ maybe "Nothing" ((++) "Just " . showWalk) b ++ ")"
     let both p w = assertBool (shw res == shw w) "walk" ["Name" #= name, "Pattern" #= p, "Expected" #= shw w, "Got" #= shw res]
             where res = walk p
-    let diff p w1 w2 = both p $ if legacy then w1 else w2
+    let diff p w1 w2 = both p $ w2
     let walk_ = Walk undefined
 
     both ["*.xml"] (False, Just walk_)

@@ -12,7 +12,7 @@ module System.FilePattern.Type(
     ) where
 
 import System.FilePattern.Wildcard
-import System.FilePath
+import System.FilePath (isPathSeparator)
 import Data.List.Extra
 
 

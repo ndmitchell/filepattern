@@ -3,14 +3,14 @@
 module Main(main) where
 
 import Control.Exception.Extra
-import Control.Monad
+import Control.Monad.Extra
 import Data.List.Extra
 import Data.Maybe
 import System.FilePattern.Type
 import System.FilePattern(Walk(..))
 import qualified System.FilePattern as New
 import qualified System.FilePattern.Parser as Parser
-import System.FilePattern.Core2
+import System.FilePattern.Core2 as Core2
 import qualified Data.Set as Set
 import System.FilePath(isPathSeparator, (</>))
 import Data.IORef.Extra
@@ -361,6 +361,11 @@ testProperties switch@Switch{..} xs = do
     where
         prop :: FilePattern -> FilePath -> IO ()
         prop pat file = do
+            let ppat = parsePattern pat
+            let pfile = parsePath file
+            whenJust (Core2.match ppat pfile) $ \ps -> do
+                assertBool (Core2.subst ppat ps == Just pfile) "FAILED PROPERTY" ["Pattern" #= pat, "File" #= file]
+
             let b = matchBool pat file
             let fields = ["Pattern" #= pat, "File" #= file, "?==" #= b]
             let res = match pat file in assertBool (b == isJust (match pat file)) "match" $ fields ++ ["match" #= res]

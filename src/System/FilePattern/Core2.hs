@@ -1,4 +1,4 @@
-{-# LANGUAGE ViewPatterns, DeriveFunctor #-}
+{-# LANGUAGE ViewPatterns, DeriveFunctor, LambdaCase #-}
 
 -- | The type of patterns and wildcards
 module System.FilePattern.Core2(
@@ -81,7 +81,7 @@ instance Applicative M where
         Just (ps, f x)
 
 next :: (Part -> Maybe a) -> M a
-next f = M $ \ps -> case ps of
+next f = M $ \case
     (f -> Just p):ps -> Just (ps, p)
     _ -> Nothing
 

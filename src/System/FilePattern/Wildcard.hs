@@ -54,4 +54,4 @@ wildcardSubst :: Applicative m => m b -> (a -> m b) -> Wildcard a -> m [b]
 wildcardSubst gap lit (Literal x) = (:[]) <$> lit x
 wildcardSubst gap lit (Wildcard pre mid post) = (:) <$>
     lit pre <*>
-    (concat <$> (flip traverse (mid ++ [post]) $ \v -> (\a b -> [a,b]) <$> gap <*> lit v))
+    (concat <$> traverse (\v -> (\a b -> [a,b]) <$> gap <*> lit v) (mid ++ [post]))

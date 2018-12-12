@@ -120,7 +120,7 @@ main :: IO ()
 main = do
     let dot x = putStr "." >> x
     forM_ switches $ \switch@Switch{..} -> do
-        putStr $ "Testing "
+        putStr "Testing "
         (get, s) <- unsafeSwitchTrace switch
         dot $ testParser s
         dot $ testSimple s
@@ -362,7 +362,7 @@ testProperties switch@Switch{..} xs = do
         prop pat file = do
             let ppat = parsePattern pat
             let pfile = parsePath file
-            whenJust (Core2.match ppat pfile) $ \ps -> do
+            whenJust (Core2.match ppat pfile) $ \ps ->
                 assertBool (Core2.subst ppat ps == Just pfile) "FAILED PROPERTY" ["Pattern" #= pat, "File" #= file]
 
             let b = matchBool pat file

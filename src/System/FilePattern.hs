@@ -1,4 +1,4 @@
-{-# LANGUAGE ConstraintKinds #-}
+{-# LANGUAGE ViewPatterns #-}
 
 -- | A module for pattern matching on file names.
 --
@@ -80,7 +80,8 @@ simple = \w -> fingerprint (parsePattern w) == zero
 
 -- | Do they have the same @*@ and @**@ counts in the same order
 compatible :: [FilePattern] -> Bool
-compatible = compatibleWith . map parse
+compatible [] = True
+compatible (map (fingerprint . parsePattern) -> x:xs) = all (x ==) xs
 
 -- | Given a successful 'match', substitute it back in to a 'compatible' pattern.
 --   Raises an error if there are not exactly the right number of substitutions,

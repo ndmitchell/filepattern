@@ -5,10 +5,11 @@ module System.FilePattern.Core2(
     FilePattern,
     Pattern(..), parsePattern,
     Path(..), parsePath,
-    Part(..),
-    match, subst
+    Part(..), match, subst,
+    Fingerprint, fingerprint
     ) where
 
+import Data.Functor
 import System.FilePattern.Wildcard
 import System.FilePath (isPathSeparator)
 import Data.Either.Extra
@@ -77,3 +78,13 @@ subst (Pattern w) ps = do
         outer w = concat <$> wildcardSubst (getNext fromParts) (traverse inner) w
     (ps, v) <- runNext ps $ outer w
     if null ps then Just $ Path v else Nothing
+
+
+newtype Fingerprint = Fingerprint [Bool]
+    deriving Eq
+
+fingerprint :: Pattern -> Fingerprint
+fingerprint (Pattern w) = Fingerprint $ fst $ runOut $ outer w
+    where
+        inner w = wildcardSubst (addOut False) (const $ pure ()) w
+        outer w = wildcardSubst (addOut True) (void . traverse inner) w

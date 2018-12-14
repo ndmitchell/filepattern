@@ -18,6 +18,7 @@ module System.FilePattern(
 
 import Control.Exception.Extra
 import Data.Maybe
+import Data.List.Extra
 import System.FilePattern.Core as Core
 import System.FilePattern.Core2 as Core2
 import System.FilePattern.Parser(parse)
@@ -52,7 +53,7 @@ import Prelude
 --   Patterns with constructs such as @foo\/..\/bar@ will never match
 --   normalised 'FilePath' values, so are unlikely to be correct.
 (?==) :: FilePattern -> FilePath -> Bool
-(?==) = matchBoolWith . parse
+(?==) w = isJust . Core2.match (parsePattern w) . parsePath
 
 
 -- | Like '?==', but returns 'Nothing' on if there is no match, otherwise 'Just' with the list
@@ -68,7 +69,10 @@ import Prelude
 --   Note that the @**@ will often contain a trailing @\/@, and even on Windows any
 --   @\\@ separators will be replaced by @\/@.
 match :: FilePattern -> FilePath -> Maybe [String]
-match = matchWith . parse
+match w = fmap (map f) . Core2.match (parsePattern w) . parsePath
+    where
+        f (Part x) = x
+        f (Parts xs) = concatMap (++ "/") xs
 
 ---------------------------------------------------------------------
 -- MULTIPATTERN COMPATIBLE SUBSTITUTIONS
@@ -90,8 +94,14 @@ compatible (map (fingerprint . parsePattern) -> x:xs) = all (x ==) xs
 -- @
 -- p '?==' x ==> 'substitute' (fromJust $ 'match' p x) p == x
 -- @
-substitute :: Partial => [String] -> FilePattern -> FilePath
-substitute xs x = substituteWith "System.FilePattern.substitute" xs (x, parse x)
+substitute :: Partial => FilePattern -> [String] -> FilePath
+substitute w xs = maybe (error msg) (\(Path x) -> intercalate "/" x) $ subst (parsePattern w) $ map f xs
+    where
+        msg = "Failed substitute, incompatible patterns, got " ++ show w ++ " and " ++ show xs
+
+        f x = case split (== '/') x of
+            [x] -> Part x
+            xs -> Parts $ dropEnd 1 xs
 
 
 ---------------------------------------------------------------------

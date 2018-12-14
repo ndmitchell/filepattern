@@ -6,7 +6,8 @@ module System.FilePattern.Core2(
     Pattern(..), parsePattern,
     Path(..), parsePath,
     Part(..), match, subst,
-    Fingerprint, fingerprint
+    Fingerprint, fingerprint,
+    split0
     ) where
 
 import Data.Functor
@@ -40,10 +41,10 @@ split0 f [] = []
 split0 f xs = split f xs
 
 parsePath :: FilePath -> Path
-parsePath = Path . split0 isPathSeparator
+parsePath = Path . split isPathSeparator
 
 parsePattern :: FilePattern -> Pattern
-parsePattern = Pattern . fmap (map $ f '*') . f "**" . split0 isPathSeparator
+parsePattern = Pattern . fmap (map $ f '*') . f "**" . split isPathSeparator
     where
         f :: Eq a => a -> [a] -> Wildcard [a]
         f x xs = case split (== x) xs of
@@ -61,7 +62,8 @@ fromPart _ = Nothing
 
 fromParts :: Part -> Maybe [String]
 fromParts (Parts x) = Just x
-fromParts _ = Nothing
+fromParts (Part "") = Just []
+fromParts (Part x) = Just [x]
 
 match :: Pattern -> Path -> Maybe [Part]
 match (Pattern w) (Path x) = f <$> wildcardMatch (wildcardMatch equals) w x

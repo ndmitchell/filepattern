@@ -7,7 +7,7 @@
 
 module System.FilePattern(
     -- * Primitive API
-    FilePattern, (?==), match,
+    FilePattern, (?==), System.FilePattern.match,
     -- * Optimisation opportunities
     simple,
     -- * Multipattern file rules
@@ -18,7 +18,8 @@ module System.FilePattern(
 
 import Control.Exception.Extra
 import Data.Maybe
-import System.FilePattern.Core
+import System.FilePattern.Core as Core
+import System.FilePattern.Core2 as Core2
 import System.FilePattern.Parser(parse)
 import Prelude
 
@@ -74,7 +75,8 @@ match = matchWith . parse
 
 -- | Is the pattern free from any @*@ and @**@.
 simple :: FilePattern -> Bool
-simple = simpleWith . parse
+simple = \w -> fingerprint (parsePattern w) == zero
+    where zero = fingerprint $ parsePattern ""
 
 -- | Do they have the same @*@ and @**@ counts in the same order
 compatible :: [FilePattern] -> Bool

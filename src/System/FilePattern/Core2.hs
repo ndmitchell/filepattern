@@ -12,6 +12,7 @@ module System.FilePattern.Core2(
 import System.FilePattern.Wildcard
 import System.FilePath (isPathSeparator)
 import Data.Either.Extra
+import System.FilePattern.Monads
 import Data.List.Extra
 
 
@@ -70,27 +71,9 @@ match (Pattern w) (Path x) = f <$> wildcardMatch (wildcardMatch equals) w x
         f [] = []
 
 
-newtype M a = M ([Part] -> Maybe ([Part], a))
-    deriving Functor
-
-instance Applicative M where
-    pure a = M $ \ps -> Just (ps, a)
-    M f <*> M x = M $ \ps -> do
-        (ps, f) <- f ps
-        (ps, x) <- x ps
-        Just (ps, f x)
-
-next :: (Part -> Maybe a) -> M a
-next f = M $ \case
-    (f -> Just p):ps -> Just (ps, p)
-    _ -> Nothing
-
-runM :: [Part] -> M a -> Maybe a
-runM ps (M f) = case f ps of
-    Just ([], a) -> Just a
-    _ -> Nothing
-
 subst :: Pattern -> [Part] -> Maybe Path
-subst (Pattern w) ps = fmap Path $ runM ps $ do
-    let inner w = concat <$> wildcardSubst (next fromPart) pure w
-    concat <$> wildcardSubst (next fromParts) (traverse inner) w
+subst (Pattern w) ps = do
+    let inner w = concat <$> wildcardSubst (getNext fromPart) pure w
+        outer w = concat <$> wildcardSubst (getNext fromParts) (traverse inner) w
+    (ps, v) <- runNext ps $ outer w
+    if null ps then Just $ Path v else Nothing

@@ -8,10 +8,8 @@
 module System.FilePattern.Core(
     -- * Primitive API, as exposed
     FilePattern, matchBoolWith, matchWith,
-    -- * Optimisation opportunities
-    simpleWith,
     -- * Multipattern file rules
-    compatibleWith, substituteWith,
+    substituteWith,
     -- * Accelerated searching
     Walk(..), walkWith
     ) where
@@ -57,23 +55,6 @@ matchWith ps = fmap (map f) . match (toWildcard ps) .
 
 ---------------------------------------------------------------------
 -- MULTIPATTERN COMPATIBLE SUBSTITUTIONS
-
--- | Extract just the specials, return list of **=True, *=False
-specialsWith :: Pats -> [Bool]
-specialsWith = concatMap f . fromPats
-    where
-        f Skip = [True]
-        f (Stars (Wildcard _ xs _)) = replicate (length xs + 1) False
-        f (Stars Literal{}) = []
-
--- | Is the pattern free from any * and **.
-simpleWith :: Pats -> Bool
-simpleWith = null . specialsWith
-
--- | Do they have the same * and ** counts in the same order
-compatibleWith :: [Pats] -> Bool
-compatibleWith [] = True
-compatibleWith (x:xs) = all ((==) (specialsWith x) . specialsWith) xs
 
 -- | Given a successful 'match', substitute it back in to a 'compatible' pattern.
 --

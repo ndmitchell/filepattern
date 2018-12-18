@@ -19,7 +19,7 @@ instance Applicative (Next e) where
         Just (es, f x)
 
 noNext :: Next e a
-noNext = Next $ \_ -> Nothing
+noNext = Next $ const Nothing
 
 getNext :: (e -> Maybe a) -> Next e a
 getNext f = Next $ \case

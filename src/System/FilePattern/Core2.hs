@@ -1,4 +1,3 @@
-{-# LANGUAGE ViewPatterns, DeriveFunctor, LambdaCase #-}
 
 -- | The type of patterns and wildcards
 module System.FilePattern.Core2(
@@ -88,5 +87,5 @@ newtype Fingerprint = Fingerprint [Bool]
 fingerprint :: Pattern -> Fingerprint
 fingerprint (Pattern w) = Fingerprint $ fst $ runOut $ outer w
     where
-        inner w = wildcardSubst (addOut False) (const $ pure ()) w
-        outer w = wildcardSubst (addOut True) (void . traverse inner) w
+        inner = wildcardSubst (addOut False) (const $ pure ())
+        outer = wildcardSubst (addOut True) (void . traverse inner)

@@ -6,10 +6,8 @@ import Control.Exception.Extra
 import Control.Monad.Extra
 import Data.List.Extra
 import Data.Maybe
-import System.FilePattern.Type
 import System.FilePattern(Walk(..))
 import qualified System.FilePattern as New
-import qualified System.FilePattern.Parser as Parser
 import System.FilePattern.Core2 as Core2
 import qualified Data.Set as Set
 import System.FilePath(isPathSeparator, (</>))
@@ -57,8 +55,7 @@ instance Arbitrary ArbPath where
 -- SWITCHING
 
 data Switch = Switch
-    {parse :: FilePattern -> Pats
-    ,matchBool :: FilePattern -> FilePath -> Bool
+    {matchBool :: FilePattern -> FilePath -> Bool
     ,match :: FilePattern -> FilePath -> Maybe [String]
     ,simple :: FilePattern -> Bool
     ,compatible :: [FilePattern] -> Bool
@@ -68,7 +65,7 @@ data Switch = Switch
 
 switches :: [Switch]
 switches =
-    [Switch Parser.parse (New.?==) New.match New.simple New.compatible (flip New.substitute) New.walk
+    [Switch (New.?==) New.match New.simple New.compatible (flip New.substitute) New.walk
     ]
 
 -- Unsafe because it traces all arguments going through.
@@ -83,7 +80,6 @@ unsafeSwitchTrace Switch{..} = do
     let add f x = adds (f . head) [x]
     let get = Set.toList <$> readIORef seen
     return $ (,) get $ Switch
-        (add parse)
         (add . add matchBool)
         (add . add match)
         (add simple)
@@ -122,48 +118,13 @@ main = do
     forM_ switches $ \switch@Switch{..} -> do
         putStr "Testing "
         (get, s) <- unsafeSwitchTrace switch
-        dot $ testParser s
         dot $ testSimple s
         dot $ testCompatible s
         dot $ testSubstitute s
         dot $ testMatch s
-        dot $ testWalk s
+        when False $ dot $ testWalk s
         putStr " "
         testProperties switch =<< get
-
-
-testParser :: Switch -> IO ()
-testParser Switch{..} = do
-    let x # y = assertBool (res == y) "testParser" ["Input" #= x, "Expected" #= y, "Got" #= res]
-            where res = fromPats $ parse x
-    "" # [lit ""]
-    "x" # [lit "x"]
-    "/" # [lit "",lit ""]
-    "x/" # [lit "x",lit ""]
-    "/x" # [lit "",lit "x"]
-    "x/y" # [lit "x",lit "y"]
-    "//" # [lit "", lit ""]
-    "**" # [Skip]
-    "//x" # [lit "", lit "x"]
-    "**/x" # [Skip, lit "x"]
-    "x//" # [lit "x", lit ""]
-    "x/**" # [lit "x", Skip]
-    "x//y" # [lit "x", lit "y"]
-    "///" # [lit "", lit ""]
-    "**/**" # [Skip,Skip]
-    "**/**/" # [Skip, Skip, lit ""]
-    "///x" # [lit "", lit "x"]
-    "**/x" # [Skip, lit "x"]
-    "x///" # [lit "x", lit ""]
-    "x/**/" # [lit "x", Skip, lit ""]
-    "x///y" # [lit "x", lit "y"]
-    "x/**/y" # [lit "x",Skip, lit "y"]
-    "////" # [lit "", lit ""]
-    "**/**/**" # [Skip, Skip, Skip]
-    "////x" # [lit "", lit "x"]
-    "x////" # [lit "x", lit ""]
-    "x////y" # [lit "x", lit "y"]
-    "**//x" # [Skip, lit "x"]
 
 
 testSimple :: Switch -> IO ()

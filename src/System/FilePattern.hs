@@ -21,7 +21,6 @@ import Data.Maybe
 import Data.List.Extra
 import System.FilePattern.Core as Core
 import System.FilePattern.Core2 as Core2
-import System.FilePattern.Parser(parse)
 import Prelude
 
 
@@ -110,4 +109,4 @@ substitute w xs = maybe (error msg) (\(Path x) -> intercalate "/" x) $ subst (pa
 -- | Efficient path walking with a set of patterns.
 --   The first component of the result is 'True' iff the empty string is matched by any pattern.
 walk :: [FilePattern] -> (Bool, Maybe Walk)
-walk = walkWith . map parse
+walk = walkWith . undefined

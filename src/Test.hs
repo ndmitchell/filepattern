@@ -370,7 +370,7 @@ testProperties switch@Switch{..} xs = do
             let b = matchBool pat file
             let fields = ["Pattern" #= pat, "File" #= file, "?==" #= b]
             let res = match pat file in assertBool (b == isJust (match pat file)) "match" $ fields ++ ["match" #= res]
-            let res = walkerMatch switch pat file in assertBool (b == res) "walker" $ fields ++ ["walker" #= res]
+            when False $ let res = walkerMatch switch pat file in assertBool (b == res) "walker" $ fields ++ ["walker" #= res]
             let res = compatible [pat,pat] in assertBool res "compatible" fields
             let norm = (\x -> if null x then [""] else x) . filter (/= ".") . split isPathSeparator
             when b $ let res = substitute (fromJust $ match pat file) pat in

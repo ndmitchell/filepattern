@@ -5,8 +5,7 @@ module System.FilePattern.Core2(
     Pattern(..), parsePattern,
     Path(..), parsePath,
     Part(..), match, subst,
-    Fingerprint, fingerprint,
-    split0
+    Fingerprint, fingerprint
     ) where
 
 import Data.Functor
@@ -35,9 +34,18 @@ newtype Pattern = Pattern (Wildcard [Wildcard String])
     deriving (Show,Eq,Ord)
 
 
-split0 :: (a -> Bool) -> [a] -> [[a]]
-split0 f [] = []
-split0 f xs = split f xs
+-- [Note: Split on ""]
+--
+-- For parsing patterns and paths, "" can either be [] or [""].
+-- Assuming they are consistent, the only cases that are relevant are:
+--
+-- > match "" "" = Just []
+-- > match "*" "" = if [] then Nothing else Just [""]
+-- > match "**" "" = if [] then Just [] else Just [""]
+--
+-- We pick "" splits as [""] because that is slightly more permissive,
+-- follows the builtin semantics of split, and matches the 'filepath'
+-- library slightly better.
 
 parsePath :: FilePath -> Path
 parsePath = Path . split isPathSeparator

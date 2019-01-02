@@ -6,9 +6,8 @@ import Control.Exception.Extra
 import Control.Monad.Extra
 import Data.List.Extra
 import Data.Maybe
-import System.FilePattern(Walk(..))
 import qualified System.FilePattern as New
-import System.FilePattern.Core2 as Core2
+import System.FilePattern.Core as Core2
 import qualified Data.Set as Set
 import System.FilePath(isPathSeparator, (</>))
 import Data.IORef.Extra
@@ -60,12 +59,12 @@ data Switch = Switch
     ,simple :: FilePattern -> Bool
     ,compatible :: [FilePattern] -> Bool
     ,substitute :: [String] -> FilePattern -> FilePath
-    ,walk :: [FilePattern] -> (Bool, Maybe Walk)
+    -- ,walk :: [FilePattern] -> (Bool, Maybe Walk)
     }
 
 switches :: [Switch]
 switches =
-    [Switch (New.?==) New.match New.simple New.compatible (flip New.substitute) New.walk
+    [Switch (New.?==) New.match New.simple New.compatible (flip New.substitute) -- New.walk
     ]
 
 -- Unsafe because it traces all arguments going through.
@@ -85,9 +84,9 @@ unsafeSwitchTrace Switch{..} = do
         (add simple)
         (adds compatible)
         (add . adds substitute)
-        (adds walk)
+        -- (adds walk)
 
-
+{-
 -- | Write 'matchBool' in terms of 'walker'.
 walkerMatch :: Switch -> FilePattern -> FilePath -> Bool
 walkerMatch Switch{..} a b = if null b2 then empty else maybe False (f b2) w
@@ -107,7 +106,7 @@ showWalk (WalkTo (p,xs)) = "WalkTo " ++ pair (show p) (list [pair (show a) (show
     where
         pair a b = "(" ++ a ++ "," ++ b ++ ")"
         list xs = "[" ++ intercalate "," xs ++ "]"
-
+-}
 
 ---------------------------------------------------------------------
 -- DRIVER
@@ -122,7 +121,7 @@ main = do
         dot $ testCompatible s
         dot $ testSubstitute s
         dot $ testMatch s
-        when False $ dot $ testWalk s
+        -- when False $ dot $ testWalk s
         putStr " "
         testProperties switch =<< get
 
@@ -288,7 +287,7 @@ testMatch Switch{..} = do
     yes "foo/./bar" "foo/./bar" []
     -- yes "foo/./bar" "foo/bar" []
 
-
+{-
 testWalk :: Switch -> IO ()
 testWalk Switch{..} = do
     let shw (a, b) = "(" ++ show a ++ "," ++ maybe "Nothing" ((++) "Just " . showWalk) b ++ ")"
@@ -312,7 +311,7 @@ testWalk Switch{..} = do
     both [""] (True, Just $ WalkTo ([""], []))
     both ["//"] (False, Just $ WalkTo ([], [("",WalkTo ([""],[]))]))
     both ["**"] (True, Just walk_)
-
+-}
 
 testProperties :: Switch -> [String] -> IO ()
 testProperties switch@Switch{..} xs = do
@@ -331,7 +330,7 @@ testProperties switch@Switch{..} xs = do
             let b = matchBool pat file
             let fields = ["Pattern" #= pat, "File" #= file, "?==" #= b]
             let res = match pat file in assertBool (b == isJust (match pat file)) "match" $ fields ++ ["match" #= res]
-            when False $ let res = walkerMatch switch pat file in assertBool (b == res) "walker" $ fields ++ ["walker" #= res]
+            -- when False $ let res = walkerMatch switch pat file in assertBool (b == res) "walker" $ fields ++ ["walker" #= res]
             let res = compatible [pat,pat] in assertBool res "compatible" fields
             let norm = (\x -> if null x then [""] else x) . filter (/= ".") . split isPathSeparator
             when b $ let res = substitute (fromJust $ match pat file) pat in

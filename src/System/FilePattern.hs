@@ -13,14 +13,14 @@ module System.FilePattern(
     -- * Multipattern file rules
     compatible, substitute,
     -- * Accelerated searching
-    Walk(..), walk
+    Step(..), step
     ) where
 
 import Control.Exception.Extra
 import Data.Maybe
 import Data.List.Extra
-import System.FilePattern.Core as Core
-import System.FilePattern.Core2 as Core2
+import System.FilePattern.Core as Core2
+import System.FilePattern.Step
 import Prelude
 
 
@@ -101,12 +101,3 @@ substitute w xs = maybe (error msg) (\(Path x) -> intercalate "/" x) $ subst (pa
         f x = case split (== '/') x of
             [x] -> Part x
             xs -> Parts $ dropEnd 1 xs
-
-
----------------------------------------------------------------------
--- EFFICIENT PATH WALKING
-
--- | Efficient path walking with a set of patterns.
---   The first component of the result is 'True' iff the empty string is matched by any pattern.
-walk :: [FilePattern] -> (Bool, Maybe Walk)
-walk = walkWith . undefined

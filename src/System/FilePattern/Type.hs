@@ -9,7 +9,7 @@ module System.FilePattern.Type(
     ) where
 
 import System.FilePattern.Wildcard
-import System.FilePattern.Core2
+import System.FilePattern.Core
 import Data.List.Extra
 
 

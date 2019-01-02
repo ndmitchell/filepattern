@@ -6,16 +6,12 @@ import Control.Exception.Extra
 import Control.Monad.Extra
 import Data.List.Extra
 import Data.Maybe
-import qualified System.FilePattern as New
-import System.FilePattern.Core as Core2
-import qualified Data.Set as Set
+import System.FilePattern as FilePattern
+import System.FilePattern.Core as Core
 import System.FilePath(isPathSeparator, (</>))
-import Data.IORef.Extra
 import System.IO.Unsafe
 import System.Info.Extra
 import Test.QuickCheck
-import Data.Functor
-import Prelude
 
 
 ---------------------------------------------------------------------
@@ -50,42 +46,6 @@ instance Arbitrary ArbPath where
     shrink (ArbPath x) = map ArbPath $ shrinkList (\x -> ['/' | x == '\\']) x
 
 
----------------------------------------------------------------------
--- SWITCHING
-
-data Switch = Switch
-    {matchBool :: FilePattern -> FilePath -> Bool
-    ,match :: FilePattern -> FilePath -> Maybe [String]
-    ,simple :: FilePattern -> Bool
-    ,compatible :: [FilePattern] -> Bool
-    ,substitute :: [String] -> FilePattern -> FilePath
-    -- ,walk :: [FilePattern] -> (Bool, Maybe Walk)
-    }
-
-switches :: [Switch]
-switches =
-    [Switch (New.?==) New.match New.simple New.compatible (flip New.substitute) -- New.walk
-    ]
-
--- Unsafe because it traces all arguments going through.
--- Useful to see the property phase with all things that have gone before.
--- Not a problem because it's in the test suite.
-unsafeSwitchTrace :: Switch -> IO (IO [String], Switch)
-unsafeSwitchTrace Switch{..} = do
-    seen <- newIORef Set.empty
-    let adds f xs = unsafePerformIO $ do
-            modifyIORef' seen $ \mp -> foldl' (flip Set.insert) mp xs
-            return $ f xs
-    let add f x = adds (f . head) [x]
-    let get = Set.toList <$> readIORef seen
-    return $ (,) get $ Switch
-        (add . add matchBool)
-        (add . add match)
-        (add simple)
-        (adds compatible)
-        (add . adds substitute)
-        -- (adds walk)
-
 {-
 -- | Write 'matchBool' in terms of 'walker'.
 walkerMatch :: Switch -> FilePattern -> FilePath -> Bool
@@ -114,20 +74,18 @@ showWalk (WalkTo (p,xs)) = "WalkTo " ++ pair (show p) (list [pair (show a) (show
 main :: IO ()
 main = do
     let dot x = putStr "." >> x
-    forM_ switches $ \switch@Switch{..} -> do
-        putStr "Testing "
-        (get, s) <- unsafeSwitchTrace switch
-        dot $ testSimple s
-        dot $ testCompatible s
-        dot $ testSubstitute s
-        dot $ testMatch s
-        -- when False $ dot $ testWalk s
-        putStr " "
-        testProperties switch =<< get
+    putStr "Testing "
+    dot testSimple
+    dot testCompatible
+    dot testSubstitute
+    dot testMatch
+    -- when False $ dot $ testWalk s
+    putStr " "
+    testProperties []
 
 
-testSimple :: Switch -> IO ()
-testSimple Switch{..} = do
+testSimple :: IO ()
+testSimple = do
     let x # y = assertBool (res == y) "simple" ["Input" #= x, "Expected" #= y, "Got" #= res]
             where res = simple x
     "a*b" # False
@@ -138,8 +96,8 @@ testSimple Switch{..} = do
     "a/**/b" # False
 
 
-testCompatible :: Switch -> IO ()
-testCompatible Switch{..} = do
+testCompatible :: IO ()
+testCompatible = do
     let x # y = assertBool (res == y) "compatible" ["Input" #= x, "Expected" #= y, "Got" #= res]
             where res = compatible x
     [] # True
@@ -151,25 +109,25 @@ testCompatible Switch{..} = do
     ["**/*a.txt","foo/**/a*.*txt"] # False
 
 
-testSubstitute :: Switch -> IO ()
-testSubstitute Switch{..} = do
+testSubstitute :: IO ()
+testSubstitute = do
     let f a b c = assertBool (res == c) "substitute" ["Parts" #= a, "Pattern" #= b, "Expected" #= c, "Got" #= res]
-            where res = substitute a b
+            where res = substitute b a
     f ["","test","da"] "**/*a*.txt" "testada.txt"
     f ["foo/bar/","test"] "**/*a.txt" "foo/bar/testa.txt"
     let deep = void . evaluate . length . show
     -- error if the number of replacements is wrong
     -- assertException (deep $ substitute ["test"] "nothing") ["substitute","wanted 0","got 1","test","nothing"] "substitute" []
     -- assertException (deep $ substitute ["test"] "*/*") ["substitute","wanted 2","got 1","test","*/*"] "substitute" []
-    assertException (deep $ substitute ["test"] "nothing") ["substitute"] "substitute" []
+    assertException (deep $ substitute "nothing" ["test"]) ["substitute"] "substitute" []
 
 
-testMatch :: Switch -> IO ()
-testMatch Switch{..} = do
+testMatch :: IO ()
+testMatch = do
     let g (Part x) = x
         g (Parts xs) = concatMap (++"/") xs
     let f a b c = assertBool (fmap (map g) res == c) "match" ["Pattern" #= a, "File" #= b, "Expected" #= c, "Got" #= res]
-            where res = Core2.match (parsePattern a) (parsePath b)
+            where res = Core.match (parsePattern a) (parsePath b)
     let yes a b c = f a b $ Just c
     let no a b = f a b Nothing
 
@@ -313,25 +271,25 @@ testWalk Switch{..} = do
     both ["**"] (True, Just walk_)
 -}
 
-testProperties :: Switch -> [String] -> IO ()
-testProperties switch@Switch{..} xs = do
+testProperties :: [String] -> IO ()
+testProperties xs = do
     forM_ xs $ \x -> forM_ xs $ \y -> prop x y
     Success{} <- quickCheckWithResult stdArgs{maxSuccess=10000} $ \(ArbPattern p) (ArbPath x) ->
-        (if matchBool p x then label "match" else property) $ unsafePerformIO $ prop p x >> return True
+        (if p ?== x then label "match" else property) $ unsafePerformIO $ prop p x >> return True
     return ()
     where
         prop :: FilePattern -> FilePath -> IO ()
         prop pat file = do
             let ppat = parsePattern pat
             let pfile = parsePath file
-            whenJust (Core2.match ppat pfile) $ \ps ->
-                assertBool (Core2.subst ppat ps == Just pfile) "FAILED PROPERTY" ["Pattern" #= pat, "File" #= file]
+            whenJust (Core.match ppat pfile) $ \ps ->
+                assertBool (Core.subst ppat ps == Just pfile) "FAILED PROPERTY" ["Pattern" #= pat, "File" #= file]
 
-            let b = matchBool pat file
+            let b = pat ?== file
             let fields = ["Pattern" #= pat, "File" #= file, "?==" #= b]
-            let res = match pat file in assertBool (b == isJust (match pat file)) "match" $ fields ++ ["match" #= res]
+            let res = FilePattern.match pat file in assertBool (b == isJust res) "match" $ fields ++ ["match" #= res]
             -- when False $ let res = walkerMatch switch pat file in assertBool (b == res) "walker" $ fields ++ ["walker" #= res]
             let res = compatible [pat,pat] in assertBool res "compatible" fields
             let norm = (\x -> if null x then [""] else x) . filter (/= ".") . split isPathSeparator
-            when b $ let res = substitute (fromJust $ match pat file) pat in
-                assertBool (norm res == norm file) "substitute" $ fields ++ ["Match" #= match pat file, "Got" #= res, "Input (norm)" #= norm file, "Got (norm)" #= norm res]
+            when b $ let res = substitute pat (fromJust $ FilePattern.match pat file) in
+                assertBool (norm res == norm file) "substitute" $ fields ++ ["Match" #= FilePattern.match pat file, "Got" #= res, "Input (norm)" #= norm file, "Got (norm)" #= norm res]

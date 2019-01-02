@@ -1,6 +1,6 @@
 {-# LANGUAGE ViewPatterns, DeriveFunctor, LambdaCase #-}
 
--- | The type of patterns and wildcards
+-- | Some useful Monads
 module System.FilePattern.Monads(
     Next, runNext, noNext, getNext,
     Out, addOut, runOut,

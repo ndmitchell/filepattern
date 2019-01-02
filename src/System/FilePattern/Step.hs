@@ -1,16 +1,6 @@
 {-# LANGUAGE DeriveFunctor #-}
 
--- | The type of wildcards, which generalises to both patterns
---   inside a filename and along patterns. e.g.
---
--- > *xy* = Wildcard [] ["xy"] []
--- > **/xxx/yyy/** = Wildcard [] [[Literal "xxx", Literal "yyy"]] []
---
---   Some more examples focusing on the first type of pattern:
---
--- > xyz = Literal "xyz"
--- > x*y*z = Wildcard "x" ["y"] ["z"]
--- > x**z = Wildcard "x" [""] ["z"]
+-- | Applying a set of paths vs a set of patterns efficiently
 module System.FilePattern.Step(
     step, Step(..)
     ) where
@@ -19,12 +9,12 @@ import System.FilePattern.Core
 
 
 data Step a = Step
-    {stepDone :: [([Part], a)]
-    ,stepRelevant :: Maybe [String]
-    ,stepApply :: [String] -> Step a
+    {stepEmpty :: Bool -- if False then stepApply any number of times will never result in stepDone being non-empty
+    ,stepDone :: [([Part], a)] -- List of things that are done at this step, in order they were passed to step
+    ,stepRelevant :: Maybe [String] -- If Just then a superset of the things that will return interesting results
+    ,stepApply :: [String] -> Step a -- Apply a set of path components
     }
 
--- | Efficient path walking with a set of patterns.
---   The first component of the result is 'True' iff the empty string is matched by any pattern.
+-- | Efficient matching of a set of paths with a set of patterns.
 step :: [(FilePattern, a)] -> Step a
 step = undefined

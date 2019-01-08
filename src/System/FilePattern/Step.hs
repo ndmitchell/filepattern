@@ -14,6 +14,7 @@ data Step a = Step
     ,stepRelevant :: Maybe [String] -- If Just then a superset of the things that will return interesting results
     ,stepApply :: [String] -> Step a -- Apply a set of path components
     }
+    deriving Functor
 
 -- | Efficient matching of a set of paths with a set of patterns.
 step :: [(FilePattern, a)] -> Step a

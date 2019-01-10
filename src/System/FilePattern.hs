@@ -9,9 +9,9 @@ module System.FilePattern(
     -- * Primitive API
     FilePattern, (?==), match,
     -- * Optimisation opportunities
-    simple,
+    simple, arity,
     -- * Multipattern file rules
-    compatible, substitute,
+    substitute,
     -- * Accelerated searching
     Step(..), step
     ) where
@@ -79,10 +79,10 @@ match w = Core.match (parsePattern w) . parsePath
 simple :: FilePattern -> Bool
 simple w = Core.arity (parsePattern w) == 0
 
--- | Do they have the same @*@ and @**@ counts in the same order
-compatible :: [FilePattern] -> Bool
-compatible [] = True
-compatible (map (Core.fingerprint . parsePattern) -> x:xs) = all (x ==) xs
+-- | How many @*@ and @**@ elements are there.
+arity :: FilePattern -> Int
+arity = Core.arity . parsePattern
+
 
 -- | Given a successful 'match', substitute it back in to a 'compatible' pattern.
 --   Raises an error if there are not exactly the right number of substitutions,

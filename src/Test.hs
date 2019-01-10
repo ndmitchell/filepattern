@@ -75,7 +75,7 @@ main = do
     let dot x = putStr "." >> x
     putStr "Testing "
     dot testSimple
-    dot testCompatible
+    dot testArity
     dot testSubstitute
     dot testMatch
     -- when False $ dot $ testWalk s
@@ -95,17 +95,19 @@ testSimple = do
     "a/**/b" # False
 
 
-testCompatible :: IO ()
-testCompatible = do
-    let x # y = assertBool (res == y) "compatible" ["Input" #= x, "Expected" #= y, "Got" #= res]
-            where res = compatible x
-    [] # True
-    ["foo/**/*"] # True
-    ["//*a.txt","foo//a*.txt"] # True
-    ["**/*a.txt","foo/**/a*.txt"] # True
-    ["//*a.txt","foo/**/a*.txt"] # False
-    ["//*a.txt","foo//a*.*txt"] # False
-    ["**/*a.txt","foo/**/a*.*txt"] # False
+testArity :: IO ()
+testArity = do
+    let x # y = assertBool (res == y) "arity" ["Input" #= x, "Expected" #= y, "Got" #= res]
+            where res = arity x
+    "" # 0
+    "foo/**/*" # 2
+    "//*a.txt" # 1
+    "foo//a*.txt" # 1
+    "**/*a.txt" # 2
+    "foo/**/a*.txt" # 2
+    "//*a.txt" # 1
+    "foo//a*.*txt" # 2
+    "foo/**/a*.*txt" # 3
 
 
 testSubstitute :: IO ()
@@ -288,7 +290,6 @@ testProperties xs = do
             let fields = ["Pattern" #= pat, "File" #= file, "?==" #= b]
             let res = FilePattern.match pat file in assertBool (b == isJust res) "match" $ fields ++ ["match" #= res]
             -- when False $ let res = walkerMatch switch pat file in assertBool (b == res) "walker" $ fields ++ ["walker" #= res]
-            let res = compatible [pat,pat] in assertBool res "compatible" fields
             let norm = (\x -> if null x then [""] else x) . filter (/= ".") . split isPathSeparator
             when b $ let res = substitute pat (fromJust $ FilePattern.match pat file) in
                 assertBool (norm res == norm file) "substitute" $ fields ++ ["Match" #= FilePattern.match pat file, "Got" #= res, "Input (norm)" #= norm file, "Got (norm)" #= norm res]

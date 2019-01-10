@@ -1,4 +1,4 @@
-{-# LANGUAGE ViewPatterns, DeriveFunctor, LambdaCase #-}
+{-# LANGUAGE DeriveFunctor #-}
 
 -- | Some useful Monads
 module System.FilePattern.Monads(

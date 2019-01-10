@@ -84,9 +84,9 @@ arity :: FilePattern -> Int
 arity = Core.arity . parsePattern
 
 
--- | Given a successful 'match', substitute it back in to a 'compatible' pattern.
+-- | Given a successful 'match', substitute it back in to a pattern with the same 'arity'.
 --   Raises an error if there are not exactly the right number of substitutions,
---   indicating the patterns were not compatible.
+--   indicating the patterns had different arity.
 --
 -- @
 -- p '?==' x ==> 'substitute' (fromJust $ 'match' p x) p == x
@@ -94,4 +94,6 @@ arity = Core.arity . parsePattern
 substitute :: Partial => FilePattern -> [String] -> FilePath
 substitute w xs = maybe (error msg) renderPath $ Core.substitute (parsePattern w) xs
     where
-        msg = "Failed substitute, incompatible patterns, got " ++ show w ++ " and " ++ show xs
+        msg = "Failed substitute, patterns of different arity. Pattern " ++ show w ++
+              " expects " ++ show (arity w) ++ " elements, but got " ++ show xs ++
+              " which has " ++ show (length xs) ++ "."

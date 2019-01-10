@@ -2,8 +2,7 @@
 
 -- | Some useful Monads
 module System.FilePattern.Monads(
-    Next, runNext, noNext, getNext,
-    Out, addOut, runOut,
+    Next, runNext, getNext
     ) where
 
 
@@ -18,9 +17,6 @@ instance Applicative (Next e) where
         (es, x) <- x es
         Just (es, f x)
 
-noNext :: Next e a
-noNext = Next $ const Nothing
-
 getNext :: Next e e
 getNext = Next $ \case
     e:es -> Just (es, e)
@@ -28,17 +24,3 @@ getNext = Next $ \case
 
 runNext :: [e] -> Next e a -> Maybe ([e], a)
 runNext ps (Next f) = f ps
-
-
-data Out v a = Out ([v] -> [v]) a
-    deriving Functor
-
-instance Applicative (Out v) where
-    pure = Out id
-    Out v1 f <*> Out v2 x = Out (v1 . v2) $ f x
-
-addOut :: v -> Out v ()
-addOut v = Out (v:) ()
-
-runOut :: Out v a -> ([v], a)
-runOut (Out v a) = (v [], a)

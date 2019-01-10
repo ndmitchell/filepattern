@@ -87,8 +87,8 @@ match (Pattern w) (Path x) = f <$> wildcardMatch (wildcardMatch equals) w x
 
 subst :: Pattern -> [String] -> Maybe Path
 subst (Pattern w) ps = do
-    let inner w = concat <$> wildcardSubst (getNext (Just . fromPart)) pure w
-        outer w = concat <$> wildcardSubst (getNext (Just . fromParts)) (traverse inner) w
+    let inner w = concat <$> wildcardSubst (fromPart <$> getNext) pure w
+        outer w = concat <$> wildcardSubst (fromParts <$> getNext) (traverse inner) w
     (ps, v) <- runNext ps $ outer w
     if null ps then Just $ Path v else Nothing
 

@@ -21,9 +21,9 @@ instance Applicative (Next e) where
 noNext :: Next e a
 noNext = Next $ const Nothing
 
-getNext :: (e -> Maybe a) -> Next e a
-getNext f = Next $ \case
-    (f -> Just a):es -> Just (es, a)
+getNext :: Next e e
+getNext = Next $ \case
+    e:es -> Just (es, e)
     _ -> Nothing
 
 runNext :: [e] -> Next e a -> Maybe ([e], a)

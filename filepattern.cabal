@@ -34,8 +34,8 @@ library
     other-modules:
         System.FilePattern.Core
         System.FilePattern.ListBy
-        System.FilePattern.Parser
-        System.FilePattern.Type
+        System.FilePattern.Monads
+        System.FilePattern.Step
         System.FilePattern.Wildcard
 
 
@@ -55,6 +55,6 @@ test-suite filepattern-test
         System.FilePattern
         System.FilePattern.Core
         System.FilePattern.ListBy
-        System.FilePattern.Parser
-        System.FilePattern.Type
+        System.FilePattern.Monads
+        System.FilePattern.Step
         System.FilePattern.Wildcard

@@ -88,6 +88,13 @@ parsePattern = Pattern . fmap (map $ f '*') . f "**" . split isPathSeparator
 -- can't be "" (would clash), it must be "/". Therefore we follow solution 2 normally,
 -- but switch to solution 1 iff all the components are empty.
 -- We implement this scheme with mkParts/fromParts.
+--
+-- Even after all that, we still have weird corner cases like:
+--
+-- > match "**" "/" = Just ["//"]
+--
+-- But the only realistic path it applies to is /, which should be pretty rare.
+
 
 mkParts :: [String] -> String
 mkParts xs | all null xs = replicate (length xs) '/'

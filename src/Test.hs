@@ -231,7 +231,7 @@ testMatch = do
     no "b*b*b*//" "bb"
     no "b*b*b*/**" "bb"
 
-    yes "**" "/" ["//"]
+    yes "**" "/" ["//"] -- UGLY corner case
     yes "**/x" "/x" ["/"]
     yes "**" "x/" ["x/"]
     let s = if isWindows then '/' else '\\'

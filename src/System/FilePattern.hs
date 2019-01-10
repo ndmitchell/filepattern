@@ -77,9 +77,7 @@ match w = Core.match (parsePattern w) . parsePath
 
 -- | Is the pattern free from any @*@ and @**@.
 simple :: FilePattern -> Bool
-simple = \w -> Core.fingerprint (parsePattern w) == zero
-    where zero = Core.fingerprint $ parsePattern ""
-
+simple w = Core.arity (parsePattern w) == 0
 
 -- | Do they have the same @*@ and @**@ counts in the same order
 compatible :: [FilePattern] -> Bool

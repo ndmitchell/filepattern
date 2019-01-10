@@ -86,16 +86,11 @@ parsePattern = Pattern . fmap (map $ f '*') . f "**" . split isPathSeparator
 -- 3) Logically, the only sensible encoding for [] must be "". Because [""]
 -- can't be "" (would clash), it must be "/". Therefore we follow solution 2 normally,
 -- but switch to solution 1 iff all the components are empty.
-
-mkPart :: String -> String
-mkPart = id
+-- We implement this scheme with mkParts/fromParts.
 
 mkParts :: [String] -> String
 mkParts xs | all null xs = replicate (length xs) '/'
            | otherwise = intercalate "/" xs
-
-fromPart :: String -> String
-fromPart = id
 
 fromParts :: String -> [String]
 fromParts xs | all isPathSeparator xs = replicate (length xs) []
@@ -105,14 +100,14 @@ match :: Pattern -> Path -> Maybe [String]
 match (Pattern w) (Path x) = f <$> wildcardMatch (wildcardMatch equals) w x
     where
         f :: [Either [[Either [()] String]] [String]] -> [String]
-        f (Left x:xs) = map mkPart (rights $ concat x) ++ f xs
+        f (Left x:xs) = rights (concat x) ++ f xs
         f (Right x:xs) = mkParts x : f xs
         f [] = []
 
 
 substitute :: Pattern -> [String] -> Maybe Path
 substitute (Pattern w) ps = do
-    let inner w = concat <$> wildcardSubst (fromPart <$> getNext) pure w
+    let inner w = concat <$> wildcardSubst getNext pure w
         outer w = concat <$> wildcardSubst (fromParts <$> getNext) (traverse inner) w
     (ps, v) <- runNext ps $ outer w
     if null ps then Just $ Path v else Nothing

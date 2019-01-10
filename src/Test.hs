@@ -6,7 +6,7 @@ import Control.Monad.Extra
 import Data.List.Extra
 import Data.Maybe
 import System.FilePattern as FilePattern
-import System.FilePattern.Core as Core
+import qualified System.FilePattern.Core as Core
 import System.FilePath(isPathSeparator, (</>))
 import System.IO.Unsafe
 import System.Info.Extra
@@ -124,7 +124,7 @@ testSubstitute = do
 testMatch :: IO ()
 testMatch = do
     let f a b c = assertBool (res == c) "match" ["Pattern" #= a, "File" #= b, "Expected" #= c, "Got" #= res]
-            where res = Core.match (parsePattern a) (parsePath b)
+            where res = Core.match (Core.parsePattern a) (Core.parsePath b)
     let yes a b c = f a b $ Just c
     let no a b = f a b Nothing
 
@@ -279,10 +279,10 @@ testProperties xs = do
     where
         prop :: FilePattern -> FilePath -> IO ()
         prop pat file = do
-            let ppat = parsePattern pat
-            let pfile = parsePath file
+            let ppat = Core.parsePattern pat
+            let pfile = Core.parsePath file
             whenJust (Core.match ppat pfile) $ \ps ->
-                assertBool (Core.subst ppat ps == Just pfile) "FAILED PROPERTY" ["Pattern" #= pat, "File" #= file]
+                assertBool (Core.substitute ppat ps == Just pfile) "FAILED PROPERTY" ["Pattern" #= pat, "File" #= file]
 
             let b = pat ?== file
             let fields = ["Pattern" #= pat, "File" #= file, "?==" #= b]

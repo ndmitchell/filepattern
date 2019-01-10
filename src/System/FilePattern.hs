@@ -11,7 +11,7 @@ module System.FilePattern(
     -- * Optimisation opportunities
     simple,
     -- * Multipattern file rules
-    compatible, substitute,
+    compatible, System.FilePattern.substitute,
     -- * Accelerated searching
     Step(..), step
     ) where
@@ -92,6 +92,6 @@ compatible (map (fingerprint . parsePattern) -> x:xs) = all (x ==) xs
 -- p '?==' x ==> 'substitute' (fromJust $ 'match' p x) p == x
 -- @
 substitute :: Partial => FilePattern -> [String] -> FilePath
-substitute w xs = maybe (error msg) (\(Path x) -> intercalate "/" x) $ subst (parsePattern w) xs
+substitute w xs = maybe (error msg) (\(Path x) -> intercalate "/" x) $ Core2.substitute (parsePattern w) xs
     where
         msg = "Failed substitute, incompatible patterns, got " ++ show w ++ " and " ++ show xs

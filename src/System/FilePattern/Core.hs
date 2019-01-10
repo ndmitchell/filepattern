@@ -1,3 +1,4 @@
+{-# LANGUAGE ViewPatterns #-}
 
 -- | The type of patterns and wildcards
 module System.FilePattern.Core(
@@ -5,7 +6,7 @@ module System.FilePattern.Core(
     Pattern(..), parsePattern,
     Path(..), parsePath,
     match, subst,
-    Fingerprint, fingerprint
+    Fingerprint, fingerprint, arity
     ) where
 
 import Data.Functor
@@ -101,3 +102,6 @@ fingerprint (Pattern w) = Fingerprint $ fst $ runOut $ outer w
     where
         inner = wildcardSubst (addOut False) (const $ pure ())
         outer = wildcardSubst (addOut True) (void . traverse inner)
+
+arity :: Pattern -> Int
+arity (fingerprint -> Fingerprint bs) = length bs

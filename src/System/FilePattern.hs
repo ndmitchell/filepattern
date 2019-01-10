@@ -7,11 +7,11 @@
 
 module System.FilePattern(
     -- * Primitive API
-    FilePattern, (?==), System.FilePattern.match,
+    FilePattern, (?==), match,
     -- * Optimisation opportunities
     simple,
     -- * Multipattern file rules
-    compatible, System.FilePattern.substitute,
+    compatible, substitute,
     -- * Accelerated searching
     Step(..), step
     ) where
@@ -19,7 +19,8 @@ module System.FilePattern(
 import Control.Exception.Extra
 import Data.Maybe
 import Data.List.Extra
-import System.FilePattern.Core as Core2
+import System.FilePattern.Core(FilePattern, parsePath, parsePattern)
+import qualified System.FilePattern.Core as Core
 import System.FilePattern.Step
 import Prelude
 
@@ -52,7 +53,7 @@ import Prelude
 --   Patterns with constructs such as @foo\/..\/bar@ will never match
 --   normalised 'FilePath' values, so are unlikely to be correct.
 (?==) :: FilePattern -> FilePath -> Bool
-(?==) w = isJust . Core2.match (parsePattern w) . parsePath
+(?==) w = isJust . Core.match (parsePattern w) . parsePath
 
 
 -- | Like '?==', but returns 'Nothing' on if there is no match, otherwise 'Just' with the list
@@ -68,7 +69,7 @@ import Prelude
 --   Note that the @**@ will often contain a trailing @\/@, and even on Windows any
 --   @\\@ separators will be replaced by @\/@.
 match :: FilePattern -> FilePath -> Maybe [String]
-match w = Core2.match (parsePattern w) . parsePath
+match w = Core.match (parsePattern w) . parsePath
 
 
 ---------------------------------------------------------------------
@@ -76,13 +77,14 @@ match w = Core2.match (parsePattern w) . parsePath
 
 -- | Is the pattern free from any @*@ and @**@.
 simple :: FilePattern -> Bool
-simple = \w -> fingerprint (parsePattern w) == zero
-    where zero = fingerprint $ parsePattern ""
+simple = \w -> Core.fingerprint (parsePattern w) == zero
+    where zero = Core.fingerprint $ parsePattern ""
+
 
 -- | Do they have the same @*@ and @**@ counts in the same order
 compatible :: [FilePattern] -> Bool
 compatible [] = True
-compatible (map (fingerprint . parsePattern) -> x:xs) = all (x ==) xs
+compatible (map (Core.fingerprint . parsePattern) -> x:xs) = all (x ==) xs
 
 -- | Given a successful 'match', substitute it back in to a 'compatible' pattern.
 --   Raises an error if there are not exactly the right number of substitutions,
@@ -92,6 +94,6 @@ compatible (map (fingerprint . parsePattern) -> x:xs) = all (x ==) xs
 -- p '?==' x ==> 'substitute' (fromJust $ 'match' p x) p == x
 -- @
 substitute :: Partial => FilePattern -> [String] -> FilePath
-substitute w xs = maybe (error msg) (\(Path x) -> intercalate "/" x) $ Core2.substitute (parsePattern w) xs
+substitute w xs = maybe (error msg) (\(Core.Path x) -> intercalate "/" x) $ Core.substitute (parsePattern w) xs
     where
         msg = "Failed substitute, incompatible patterns, got " ++ show w ++ " and " ++ show xs

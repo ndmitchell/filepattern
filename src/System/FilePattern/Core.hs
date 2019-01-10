@@ -64,7 +64,28 @@ parsePattern = Pattern . fmap (map $ f '*') . f "**" . split isPathSeparator
                 Just (mid, post) -> Wildcard pre mid post
 
 
--- [Note: Conversion to string]
+-- [Note: Conversion of parts to String]
+--
+-- The match of * is String, but the match for ** is really [String].
+-- To simplify the API, since everything else is String encoding [String],
+-- we want to convert that [String] to String. We considered 3 solutions.
+--
+-- 1) Since we know the elements of [String] don't contain /, a natural
+-- solution is to insert / characters between items with intercalate, but that
+-- doesn't work because [] and [""] end up with the same representation, but
+-- are very different, e.g.
+--
+-- > match "**/a" "a"  = Just []
+-- > match "**/a" "/a" = Just [""]
+--
+-- 2) We can join with "/" after every component, so ["a","b"] becomes
+-- "a/b/". But that causes / characters to appear from nowhere, e.g.
+--
+-- > match "**" "a" = Just ["a/"]
+--
+-- 3) Logically, the only sensible encoding for [] must be "". Because [""]
+-- can't be "" (would clash), it must be "/". Therefore we follow solution 2 normally,
+-- but switch to solution 1 iff all the components are empty.
 
 mkPart :: String -> String
 mkPart = id

@@ -1,6 +1,6 @@
 {-# LANGUAGE ViewPatterns #-}
 
--- | The type of patterns and wildcards
+-- | The type of patterns and wildcards, and operations working on parsed versions.
 module System.FilePattern.Core(
     FilePattern,
     Pattern(..), parsePattern,

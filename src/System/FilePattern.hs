@@ -68,10 +68,8 @@ import Prelude
 --   Note that the @**@ will often contain a trailing @\/@, and even on Windows any
 --   @\\@ separators will be replaced by @\/@.
 match :: FilePattern -> FilePath -> Maybe [String]
-match w = fmap (map f) . Core2.match (parsePattern w) . parsePath
-    where
-        f (Part x) = x
-        f (Parts xs) = concatMap (++ "/") xs
+match w = Core2.match (parsePattern w) . parsePath
+
 
 ---------------------------------------------------------------------
 -- MULTIPATTERN COMPATIBLE SUBSTITUTIONS
@@ -94,10 +92,6 @@ compatible (map (fingerprint . parsePattern) -> x:xs) = all (x ==) xs
 -- p '?==' x ==> 'substitute' (fromJust $ 'match' p x) p == x
 -- @
 substitute :: Partial => FilePattern -> [String] -> FilePath
-substitute w xs = maybe (error msg) (\(Path x) -> intercalate "/" x) $ subst (parsePattern w) $ map f xs
+substitute w xs = maybe (error msg) (\(Path x) -> intercalate "/" x) $ subst (parsePattern w) xs
     where
         msg = "Failed substitute, incompatible patterns, got " ++ show w ++ " and " ++ show xs
-
-        f x = case split (== '/') x of
-            [x] -> Part x
-            xs -> Parts $ dropEnd 1 xs

@@ -4,7 +4,7 @@ module System.FilePattern.Core(
     FilePattern,
     Pattern(..), parsePattern,
     Path(..), parsePath,
-    Part(..), match, subst,
+    match, subst,
     Fingerprint, fingerprint
     ) where
 
@@ -60,31 +60,35 @@ parsePattern = Pattern . fmap (map $ f '*') . f "**" . split isPathSeparator
                 Just (mid, post) -> Wildcard pre mid post
 
 
-data Part = Part String | Parts [String]
-    deriving (Show,Eq,Ord)
+-- [Note: Conversion to string]
 
-fromPart :: Part -> Maybe String
-fromPart (Part x) = Just x
-fromPart _ = Nothing
+mkPart :: String -> String
+mkPart = id
 
-fromParts :: Part -> Maybe [String]
-fromParts (Parts x) = Just x
-fromParts (Part "") = Just []
-fromParts (Part x) = Just [x]
+mkParts :: [String] -> String
+mkParts xs | all null xs = replicate (length xs) '/'
+           | otherwise = intercalate "/" xs
 
-match :: Pattern -> Path -> Maybe [Part]
+fromPart :: String -> String
+fromPart = id
+
+fromParts :: String -> [String]
+fromParts xs | all isPathSeparator xs = replicate (length xs) []
+             | otherwise = split isPathSeparator xs
+
+match :: Pattern -> Path -> Maybe [String]
 match (Pattern w) (Path x) = f <$> wildcardMatch (wildcardMatch equals) w x
     where
-        f :: [Either [[Either [()] String]] [String]] -> [Part]
-        f (Left x:xs) = map Part (rights $ concat x) ++ f xs
-        f (Right x:xs) = Parts x : f xs
+        f :: [Either [[Either [()] String]] [String]] -> [String]
+        f (Left x:xs) = map mkPart (rights $ concat x) ++ f xs
+        f (Right x:xs) = mkParts x : f xs
         f [] = []
 
 
-subst :: Pattern -> [Part] -> Maybe Path
+subst :: Pattern -> [String] -> Maybe Path
 subst (Pattern w) ps = do
-    let inner w = concat <$> wildcardSubst (getNext fromPart) pure w
-        outer w = concat <$> wildcardSubst (getNext fromParts) (traverse inner) w
+    let inner w = concat <$> wildcardSubst (getNext (Just . fromPart)) pure w
+        outer w = concat <$> wildcardSubst (getNext (Just . fromParts)) (traverse inner) w
     (ps, v) <- runNext ps $ outer w
     if null ps then Just $ Path v else Nothing
 

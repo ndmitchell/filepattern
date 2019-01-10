@@ -113,7 +113,7 @@ testSubstitute = do
     let f a b c = assertBool (res == c) "substitute" ["Parts" #= a, "Pattern" #= b, "Expected" #= c, "Got" #= res]
             where res = substitute b a
     f ["","test","da"] "**/*a*.txt" "testada.txt"
-    f ["foo/bar/","test"] "**/*a.txt" "foo/bar/testa.txt"
+    f ["foo/bar","test"] "**/*a.txt" "foo/bar/testa.txt"
     let deep = void . evaluate . length . show
     -- error if the number of replacements is wrong
     -- assertException (deep $ substitute ["test"] "nothing") ["substitute","wanted 0","got 1","test","nothing"] "substitute" []
@@ -123,28 +123,26 @@ testSubstitute = do
 
 testMatch :: IO ()
 testMatch = do
-    let g (Part x) = x
-        g (Parts xs) = concatMap (++"/") xs
-    let f a b c = assertBool (fmap (map g) res == c) "match" ["Pattern" #= a, "File" #= b, "Expected" #= c, "Got" #= res]
+    let f a b c = assertBool (res == c) "match" ["Pattern" #= a, "File" #= b, "Expected" #= c, "Got" #= res]
             where res = Core.match (parsePattern a) (parsePath b)
     let yes a b c = f a b $ Just c
     let no a b = f a b Nothing
 
     no "//*.c" "foo/bar/baz.c"
     --yes "//*.c" "/baz.c" ["baz"]
-    yes "**/*.c" "foo/bar/baz.c" ["foo/bar/","baz"]
-    yes ("**" </> "*.c") ("foo/bar" </> "baz.c") ["foo/bar/","baz"]
+    yes "**/*.c" "foo/bar/baz.c" ["foo/bar","baz"]
+    yes ("**" </> "*.c") ("foo/bar" </> "baz.c") ["foo/bar","baz"]
     yes "*.c" "baz.c" ["baz"]
     no "//*.c" "baz.c"
     yes "**/*.c" "baz.c" ["","baz"]
-    yes "**/*a.txt" "foo/bar/testa.txt" ["foo/bar/","test"]
+    yes "**/*a.txt" "foo/bar/testa.txt" ["foo/bar","test"]
     no "**/*.c" "baz.txt"
     yes "**/*a.txt" "testa.txt" ["","test"]
     yes "**/a.txt" "a.txt" [""]
     yes "a/**/b" "a/b" [""]
-    yes "a/**/b" "a/x/b" ["x/"]
-    yes "a/**/b" "a/x/y/b" ["x/y/"]
-    yes "a/**/**/b" "a/x/y/b" ["","x/y/"]
+    yes "a/**/b" "a/x/b" ["x"]
+    yes "a/**/b" "a/x/y/b" ["x/y"]
+    yes "a/**/**/b" "a/x/y/b" ["","x/y"]
     yes "**/*a*.txt" "testada.txt" ["","test","da"]
     yes "test.c" "test.c" []
     no "*.c" "foor/bar.c"
@@ -160,17 +158,19 @@ testMatch = do
     yes "foo/bar" ("foo" </> "bar") []
     yes ("foo" </> "bar") "foo/bar" []
     yes ("foo" </> "bar") ("foo" </> "bar") []
-    yes "**/*.c" ("bar" </> "baz" </> "foo.c") ["bar/baz/","foo"]
+    yes "**/*.c" ("bar" </> "baz" </> "foo.c") ["bar/baz","foo"]
     -- yes "//*" "/bar" ["bar"]
     yes "**/*" "/bar" ["/","bar"]
     no "/bob//foo" "/bob/this/test/foo"
     -- yes "/bob//foo" "/bob/foo" []
-    yes "/bob/**/foo" "/bob/this/test/foo" ["this/test/"]
+    yes "/bob/**/foo" "/bob/this/test/foo" ["this/test"]
     no "/bob//foo" "bob/this/test/foo"
     no "/bob/**/foo" "bob/this/test/foo"
     no "bob//foo/" "bob/this/test/foo/"
     -- yes "bob//foo/" "bob/foo/" []
-    yes "bob/**/foo/" "bob/this/test/foo/" ["this/test/"]
+    yes "bob/**/foo/" "bob/this/test/foo/" ["this/test"]
+    yes "bob/**/foo/" "bob/foo/" [""]
+    yes "bob/**/foo/" "bob//foo/" ["/"]
     no "bob//foo/" "bob/this/test/foo"
     no "bob/**/foo/" "bob/this/test/foo"
     yes ("**" </> "*a*.txt") "testada.txt" ["","test","da"]
@@ -187,16 +187,16 @@ testMatch = do
     no "///" ""
     -- yes "///" "/" []
     yes "/**" "/" ["/"]
-    yes "**/" "a/" ["a/"]
+    yes "**/" "a/" ["a"]
     -- yes "////" "/" []
     -- yes "**/**" "" ["","/"]
     yes "x/**/y" "x/y" [""]
     -- yes "x///" "x/" []
     yes "x/**/" "x/" [""]
-    yes "x/**/" "x/foo/" ["foo/"]
+    yes "x/**/" "x/foo/" ["foo"]
     no "x///" "x"
     no "x/**/" "x"
-    yes "x/**/" "x/foo/bar/" ["foo/bar/"]
+    yes "x/**/" "x/foo/bar/" ["foo/bar"]
     no "x///" "x/foo/bar"
     no "x/**/" "x/foo/bar"
     -- yes "x///y" "x/y" []
@@ -231,11 +231,11 @@ testMatch = do
 
     yes "**" "/" ["//"]
     yes "**/x" "/x" ["/"]
-    yes "**" "x/" ["x//"]
+    yes "**" "x/" ["x/"]
     let s = if isWindows then '/' else '\\'
-    yes "**" "\\\\drive" [s:s:"drive/"]
-    yes "**" "C:\\drive" ["C:"++s:"drive/"]
-    yes "**" "C:drive" ["C:drive/"]
+    yes "**" "\\\\drive" [s:s:"drive"]
+    yes "**" "C:\\drive" ["C:"++s:"drive"]
+    yes "**" "C:drive" ["C:drive"]
 
     -- We support ignoring '.' values in FilePath as they are inserted by @filepath@ a lot
     -- yes "./file" "file" []

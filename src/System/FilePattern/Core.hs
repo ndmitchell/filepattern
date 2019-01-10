@@ -3,8 +3,8 @@
 -- | The type of patterns and wildcards, and operations working on parsed versions.
 module System.FilePattern.Core(
     FilePattern,
-    Pattern(..), parsePattern,
-    Path(..), parsePath,
+    Pattern, parsePattern,
+    Path, parsePath, renderPath,
     match, substitute,
     Fingerprint, fingerprint, arity
     ) where
@@ -50,6 +50,9 @@ newtype Pattern = Pattern (Wildcard [Wildcard String])
 
 parsePath :: FilePath -> Path
 parsePath = Path . split isPathSeparator
+
+renderPath :: Path -> FilePattern
+renderPath (Path x) = intercalate "/" x
 
 parsePattern :: FilePattern -> Pattern
 parsePattern = Pattern . fmap (map $ f '*') . f "**" . split isPathSeparator

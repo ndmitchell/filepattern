@@ -19,7 +19,7 @@ module System.FilePattern(
 import Control.Exception.Extra
 import Data.Maybe
 import Data.List.Extra
-import System.FilePattern.Core(FilePattern, parsePath, parsePattern)
+import System.FilePattern.Core(FilePattern, parsePattern, parsePath, renderPath)
 import qualified System.FilePattern.Core as Core
 import System.FilePattern.Step
 import Prelude
@@ -92,6 +92,6 @@ compatible (map (Core.fingerprint . parsePattern) -> x:xs) = all (x ==) xs
 -- p '?==' x ==> 'substitute' (fromJust $ 'match' p x) p == x
 -- @
 substitute :: Partial => FilePattern -> [String] -> FilePath
-substitute w xs = maybe (error msg) (\(Core.Path x) -> intercalate "/" x) $ Core.substitute (parsePattern w) xs
+substitute w xs = maybe (error msg) renderPath $ Core.substitute (parsePattern w) xs
     where
         msg = "Failed substitute, incompatible patterns, got " ++ show w ++ " and " ++ show xs

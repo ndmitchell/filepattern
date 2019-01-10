@@ -15,6 +15,7 @@ module System.FilePattern.Wildcard(
     Wildcard(..),
     wildcardMatch,
     wildcardSubst,
+    wildcardArity,
     equals
     ) where
 
@@ -55,3 +56,8 @@ wildcardSubst gap lit (Literal x) = (:[]) <$> lit x
 wildcardSubst gap lit (Wildcard pre mid post) = (:) <$>
     lit pre <*>
     (concat <$> traverse (\v -> (\a b -> [a,b]) <$> gap <*> lit v) (mid ++ [post]))
+
+
+wildcardArity :: Wildcard a -> Int
+wildcardArity (Literal _) = 0
+wildcardArity (Wildcard _ xs _) = length xs + 1

@@ -116,7 +116,4 @@ substitute (Pattern w) ps = do
 
 
 arity :: Pattern -> Int
-arity (Pattern x) = sum $ f x : map f (concat $ toList x)
-    where
-        f (Literal _) = 0
-        f (Wildcard _ xs _) = length xs + 1
+arity (Pattern x) = sum $ wildcardArity x : map wildcardArity (concat $ toList x)

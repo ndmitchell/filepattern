@@ -5,6 +5,8 @@ module System.FilePattern.Monads(
     Next, runNext, getNext
     ) where
 
+import Control.Applicative
+import Prelude
 
 -- | Next is a monad which has a series of elements, and can pull off the next one
 newtype Next e a = Next ([e] -> Maybe ([e], a))

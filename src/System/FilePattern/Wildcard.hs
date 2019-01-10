@@ -1,4 +1,4 @@
-{-# LANGUAGE DeriveFunctor #-}
+{-# LANGUAGE DeriveFunctor, DeriveTraversable #-}
 
 -- | The type of wildcards, which generalises to both patterns
 --   inside a filename and along patterns. e.g.
@@ -32,7 +32,7 @@ equals x y = if x == y then Just () else Nothing
 -- | Representing either literals, or wildcards
 data Wildcard a = Wildcard a [a] a -- ^ prefix [mid-parts] suffix
                 | Literal a -- ^ literal match
-    deriving (Show,Eq,Ord,Functor)
+    deriving (Show,Eq,Ord,Functor,Foldable)
 
 -- | Given a wildcard, and a test string, return the matches.
 --   Only return the first (all patterns left-most) valid star matching.

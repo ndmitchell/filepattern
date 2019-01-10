@@ -6,15 +6,17 @@ module System.FilePattern.Core(
     Pattern, parsePattern,
     Path, parsePath, renderPath,
     match, substitute,
-    Fingerprint, fingerprint, arity
+    arity
     ) where
 
 import Data.Functor
 import System.FilePattern.Wildcard
 import System.FilePath (isPathSeparator)
 import Data.Either.Extra
+import Data.Foldable
 import System.FilePattern.Monads
 import Data.List.Extra
+import Prelude
 
 
 -- | A type synonym for file patterns, containing @**@ and @*@. For the syntax
@@ -113,14 +115,8 @@ substitute (Pattern w) ps = do
     if null ps then Just $ Path v else Nothing
 
 
-newtype Fingerprint = Fingerprint [Bool]
-    deriving Eq
-
-fingerprint :: Pattern -> Fingerprint
-fingerprint (Pattern w) = Fingerprint $ fst $ runOut $ outer w
-    where
-        inner = wildcardSubst (addOut False) (const $ pure ())
-        outer = wildcardSubst (addOut True) (void . traverse inner)
-
 arity :: Pattern -> Int
-arity (fingerprint -> Fingerprint bs) = length bs
+arity (Pattern x) = sum $ f x : map f (concat $ toList x)
+    where
+        f (Literal _) = 0
+        f (Wildcard _ xs _) = length xs + 1

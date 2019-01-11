@@ -8,15 +8,27 @@ module System.FilePattern.Step(
 import System.FilePattern.Core
 
 
--- | The result of 'step'.
+-- | The result of 'step', used to process successive path components of a set of 'FilePath's.
 data Step a = Step
-    {stepEmpty :: Bool -- ^ if False then stepApply any number of times will never result in stepDone being non-empty
-    ,stepDone :: [([String], a)] -- ^ List of things that are done at this step, in order they were passed to 'step'
-    ,stepRelevant :: Maybe [String] -- ^ If Just then a superset of the things that will return interesting results
-    ,stepApply :: [String] -> Step a -- ^ Apply a set of path components
+    {stepEmpty :: Bool
+        -- ^ If 'False' then no future calls to 'stepApply' will produce a non-empty 'stepDone'.
+        --   In other words, there are no further matching files down this path.
+    ,stepDone :: [([String], a)]
+        -- ^ The files that match at this step. Includes the list that would have been produced by 'match',
+        --   along with the values passed to 'step'.
+    ,stepRelevant :: Maybe [String]
+        -- ^ If 'Just' then all non-included components will result in dull 'Step' values from 'stepApply',
+        --   with 'stepEmpty' being 'True' and 'stepDone' being @[]@.
+    ,stepApply :: String -> Step a
+        -- ^ Apply one component from a 'FilePath' to get a new 'Step'.
     }
     deriving Functor
 
--- | Efficient matching of a set of paths with a set of patterns.
+-- | Efficient matching of a set of 'FilePattern's against a set of 'FilePath's.
+--   First call 'step' passing in all the 'FilePattern's, with a tag for each one.
+--   Next call the methods of 'Step', providing the components of the 'FilePath's in turn.
+--
+--   Useful for efficient bulk searching, particularly directory scanning, where you can
+--   avoid descending into directories which cannot match.
 step :: [(FilePattern, a)] -> Step a
 step = undefined

@@ -2,14 +2,13 @@
 
 -- | A module for pattern matching on file names.
 --
--- >>> "/**/*.png" ?== "/foo/bar/baz.png"
+-- >>> "**/*.png" ?== "foo/bar/baz.png"
 -- True
 
 module System.FilePattern(
-    -- * Using FilePattern values
     FilePattern, (?==), match, substitute, arity,
-    -- * Accelerated searching
-    Step(..), step
+    -- * Multiple 'FilePattern' and 'FilePath'
+    step, Step(..),
     ) where
 
 import Control.Exception.Extra
@@ -24,12 +23,11 @@ import Prelude
 ---------------------------------------------------------------------
 -- PATTERNS
 
--- | Match a 'FilePattern' against a 'FilePath', There are three special forms:
+-- | Match a 'FilePattern' against a 'FilePath'. There are two special forms:
 --
--- * @*@ matches an entire path component, excluding any separators.
+-- * @*@ matches part of a path component, excluding any separators.
 --
--- * @**@ as a path component matches an arbitrary number of path components, but not
---   absolute path prefixes.
+-- * @**@ as a path component matches an arbitrary number of path components.
 --
 --   Some examples:
 --
@@ -62,8 +60,7 @@ import Prelude
 -- 'match' \"**\/*.c\" \"bar\/baz\/foo.c\" == Just [\"bar\/baz/\",\"foo\"]
 -- @
 --
---   Note that the @**@ will often contain a trailing @\/@, and even on Windows any
---   @\\@ separators will be replaced by @\/@.
+--   On Windows any @\\@ path separators will be replaced by @\/@.
 match :: FilePattern -> FilePath -> Maybe [String]
 match w = Core.match (parsePattern w) . parsePath
 
@@ -72,16 +69,21 @@ match w = Core.match (parsePattern w) . parsePath
 -- MULTIPATTERN COMPATIBLE SUBSTITUTIONS
 
 -- | How many @*@ and @**@ elements are there.
+--
+-- @
+-- 'arity' \"test.c\" == 0
+-- 'arity' \"**\/*.c\" == 2
+-- @
 arity :: FilePattern -> Int
 arity = Core.arity . parsePattern
 
 
 -- | Given a successful 'match', substitute it back in to a pattern with the same 'arity'.
---   Raises an error if there are not exactly the right number of substitutions,
---   indicating the patterns had different arity.
+--   Raises an error if the number of parts does not match the arity of the pattern.
 --
 -- @
 -- p '?==' x ==> 'substitute' (fromJust $ 'match' p x) p == x
+-- 'substitute' \"**\/*.c\" [\"dir\",\"file\"] == \"dir/file.c\"
 -- @
 substitute :: Partial => FilePattern -> [String] -> FilePath
 substitute w xs = maybe (error msg) renderPath $ Core.substitute (parsePattern w) xs

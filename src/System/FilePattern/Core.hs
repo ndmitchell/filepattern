@@ -21,13 +21,13 @@ import Prelude
 
 
 -- | A type synonym for file patterns, containing @**@ and @*@. For the syntax
---   and semantics of 'FilePattern' see '?=='.
+--   and semantics of 'FilePattern' see 'System.FilePattern.?=='.
 --
 --   Most 'FilePath' values lacking literal @.@ and @..@ components are suitable as 'FilePattern' values which match
---   only that specific file. On (Windows @\\@ is treated as equivalent to @\/@.
+--   only that specific file. On Windows @\\@ is treated as equivalent to @\/@.
 --
 --   You can write 'FilePattern' values as a literal string, or build them
---   up using the operators '<.>' and '</>'.
+--   up using the operators '<.>' and '</>' (but be aware that @\"\" '</>' \"foo\"@ produces @\"./foo\"@).
 type FilePattern = String
 
 

@@ -1,3 +1,4 @@
+{-# LANGUAGE ConstraintKinds #-}
 
 -- | A module for pattern matching on file names.
 --

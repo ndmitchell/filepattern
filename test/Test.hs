@@ -4,6 +4,7 @@ module Main(main) where
 
 import Control.Monad.Extra
 import Data.List.Extra
+import Data.Functor
 import qualified Test.Util as T
 import Data.Maybe
 import System.FilePattern as FilePattern
@@ -11,6 +12,8 @@ import System.FilePath(isPathSeparator)
 import System.IO.Unsafe
 import Test.QuickCheck
 import Test.Cases
+import Prelude
+
 
 ---------------------------------------------------------------------
 -- TEST UTILITIES

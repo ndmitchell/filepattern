@@ -1,10 +1,11 @@
+{-# LANGUAGE RecordWildCards #-}
 
 module Test.Util(
     match, matchY, matchN,
     simple,
     arity,
     substitute, substituteErr,
-    unsafeTestData
+    TestData(..), unsafeTestData,
     ) where
 
 import Control.Exception.Extra
@@ -19,15 +20,23 @@ import System.IO.Unsafe
 ---------------------------------------------------------------------
 -- COLLECT TEST DATA
 
+data TestData = TestData
+    {testDataCases :: {-# UNPACK #-} !Int
+    ,testDataPats :: [FilePattern]
+    ,testDataPaths :: [FilePath]
+    }
+
 {-# NOINLINE testData #-}
-testData :: IORef ([FilePattern], [FilePath])
-testData = unsafePerformIO $ newIORef ([],[])
+testData :: IORef TestData
+testData = unsafePerformIO $ newIORef $ TestData 0 [] []
 
 addTestData :: [FilePattern] -> [FilePath] -> IO ()
-addTestData x1 y1 = atomicModifyIORef' testData $ \(x2,y2) -> ((reverse x1 ++ x2, reverse y1 ++ y2), ())
+addTestData pats paths = atomicModifyIORef' testData $ \t -> (f t, ())
+    where f TestData{..} = TestData (testDataCases+1) (reverse pats ++ testDataPats) (reverse paths ++ testDataPaths)
 
-unsafeTestData :: IO ([FilePattern], [FilePath])
-unsafeTestData = atomicModifyIORef' testData $ \(x,y) -> (([],[]), (nubSort $ reverse x, nubSort $ reverse y))
+unsafeTestData :: IO TestData
+unsafeTestData = atomicModifyIORef' testData $ \t -> (TestData 0 [] [], f t)
+    where f TestData{..} = TestData testDataCases (nubSort $ reverse testDataPats) (nubSort $ reverse testDataPaths)
 
 
 ---------------------------------------------------------------------

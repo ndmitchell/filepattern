@@ -70,6 +70,8 @@ main = do
     dot testArity
     dot testSubstitute
     dot testMatch
+    T.TestData{..} <- T.unsafeTestData
+    putStrLn $ "Specific test cases passed (" ++ show testDataCases ++ ")"
     -- when False $ dot $ testWalk s
     putStr " "
     testProperties []

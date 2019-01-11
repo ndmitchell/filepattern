@@ -40,6 +40,8 @@ instance Semigroup (Step a) where
             ,stepDone = concatMap stepDone ss
             ,stepRelevant = nubOrd <$> concatMapM stepRelevant ss
             ,stepApply = \x -> mconcat $ map (`stepApply` x) ss
+                -- important to use mconcat, which has the sconcat optimisation
+                -- and NOT foldMap which doesn't
             }
 
 instance Monoid (Step a) where

@@ -25,7 +25,7 @@ import Control.Applicative
 import Control.Monad.Extra
 import System.FilePattern.ListBy
 import Data.Traversable
-import Data.Foldable hiding (concat)
+import qualified Data.Foldable as F
 import Prelude
 
 
@@ -36,7 +36,7 @@ equals x y = if x == y then Just () else Nothing
 -- | Representing either literals, or wildcards
 data Wildcard a = Wildcard a [a] a -- ^ prefix [mid-parts] suffix
                 | Literal a -- ^ literal match
-    deriving (Show,Eq,Ord,Functor,Foldable)
+    deriving (Show,Eq,Ord,Functor,F.Foldable)
 
 -- | Given a wildcard, and a test string, return the matches.
 --   Only return the first (all patterns left-most) valid star matching.

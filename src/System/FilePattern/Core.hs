@@ -12,7 +12,7 @@ import Data.Functor
 import System.FilePattern.Wildcard
 import System.FilePath (isPathSeparator)
 import Data.Either.Extra
-import Data.Foldable
+import qualified Data.Foldable as F
 import System.FilePattern.Monads
 import Data.List.Extra
 import Prelude
@@ -122,4 +122,4 @@ substitute (Pattern w) ps = do
 
 
 arity :: Pattern -> Int
-arity (Pattern x) = sum $ wildcardArity x : map wildcardArity (concat $ toList x)
+arity (Pattern x) = sum $ wildcardArity x : map wildcardArity (concat $ F.toList x)

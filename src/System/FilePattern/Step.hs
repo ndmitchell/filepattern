@@ -6,9 +6,13 @@ module System.FilePattern.Step(
     ) where
 
 import System.FilePattern.Core
+import Control.Monad.Extra
 import Data.List.Extra
 import Data.Semigroup
+import Data.Functor
+import Data.Foldable(foldMap)
 import qualified Data.List.NonEmpty as NE
+import Prelude
 
 
 -- | The result of 'step', used to process successive path components of a set of 'FilePath's.
@@ -35,7 +39,7 @@ instance Semigroup (Step a) where
         | otherwise = Step
             {stepEmpty = all stepEmpty ss
             ,stepDone = concatMap stepDone ss
-            ,stepRelevant = nubOrd . concat <$> traverse stepRelevant ss
+            ,stepRelevant = nubOrd <$> concatMapM stepRelevant ss
             ,stepApply = \x -> foldMap (`stepApply` x) ss
             }
 

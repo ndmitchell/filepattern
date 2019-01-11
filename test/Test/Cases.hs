@@ -45,7 +45,6 @@ testSubstitute = do
 testMatch :: IO ()
 testMatch = do
     matchN "//*.c" "foo/bar/baz.c"
-    --matchY "//*.c" "/baz.c" ["baz"]
     matchY "**/*.c" "foo/bar/baz.c" ["foo/bar","baz"]
     matchY ("**" </> "*.c") ("foo/bar" </> "baz.c") ["foo/bar","baz"]
     matchY "*.c" "baz.c" ["baz"]
@@ -69,21 +68,18 @@ testMatch = do
     matchN "foo/**/bar" "foobar/bar"
     matchN "foo//bar" "foo/foobar"
     matchN "foo/**/bar" "foo/foobar"
-    -- matchY "foo//bar" "foo/bar" []
+    matchN "foo//bar" "foo/bar"
     matchY "foo/**/bar" "foo/bar" [""]
     matchY "foo/bar" ("foo" </> "bar") []
     matchY ("foo" </> "bar") "foo/bar" []
     matchY ("foo" </> "bar") ("foo" </> "bar") []
     matchY "**/*.c" ("bar" </> "baz" </> "foo.c") ["bar/baz","foo"]
-    -- matchY "//*" "/bar" ["bar"]
     matchY "**/*" "/bar" ["/","bar"]
     matchN "/bob//foo" "/bob/this/test/foo"
-    -- matchY "/bob//foo" "/bob/foo" []
     matchY "/bob/**/foo" "/bob/this/test/foo" ["this/test"]
     matchN "/bob//foo" "bob/this/test/foo"
     matchN "/bob/**/foo" "bob/this/test/foo"
     matchN "bob//foo/" "bob/this/test/foo/"
-    -- matchY "bob//foo/" "bob/foo/" []
     matchY "bob/**/foo/" "bob/this/test/foo/" ["this/test"]
     matchY "bob/**/foo/" "bob/foo/" [""]
     matchY "bob/**/foo/" "bob//foo/" ["/"]
@@ -92,22 +88,17 @@ testMatch = do
     matchY ("**" </> "*a*.txt") "testada.txt" ["","test","da"]
     matchN "a//" "a"
     matchY "a/**" "a" [""]
-    -- matchY "a//" "a/" []
+    matchY "a/**" "a/" ["/"]
     matchN "/a//" "/a"
     matchY "a/**" "a" [""]
-    -- matchY "/a//" "/a/" []
     matchY "/a/**" "/a" [""]
     matchN "///a//" "/a"
-    -- matchY "///a//" "/a/" []
     matchY "**/a/**" "/a" ["/",""]
     matchN "///" ""
-    -- matchY "///" "/" []
     matchY "/**" "/" ["/"]
     matchY "**/" "a/" ["a"]
-    -- matchY "////" "/" []
-    -- matchY "**/**" "" ["","/"]
+    matchY "**/**" "" ["","/"]
     matchY "x/**/y" "x/y" [""]
-    -- matchY "x///" "x/" []
     matchY "x/**/" "x/" [""]
     matchY "x/**/" "x/foo/" ["foo"]
     matchN "x///" "x"
@@ -115,7 +106,6 @@ testMatch = do
     matchY "x/**/" "x/foo/bar/" ["foo/bar"]
     matchN "x///" "x/foo/bar"
     matchN "x/**/" "x/foo/bar"
-    -- matchY "x///y" "x/y" []
     matchY "x/**/*/y" "x/z/y" ["","z"]
     matchY "" "" []
     matchN "" "y"
@@ -123,14 +113,9 @@ testMatch = do
 
     matchY "*/*" "x/y" ["x","y"]
     matchN "*/*" "x"
-    -- matchY "//*" "/x" ["x"]
     matchY "**/*" "x" ["","x"]
-    -- matchY "//*" "/" [""]
-    -- matchY "**/*" "" ["",""]
-    -- matchY "*//" "x/" ["x"]
+    matchY "**/*" "" ["",""]
     matchY "*/**" "x" ["x",""]
-    -- matchY "*//" "/" [""]
-    -- matchY "*//*" "x/y" ["x","y"]
     matchY "*/**/*" "x/y" ["x","","y"]
     matchN "*//*" ""
     matchN "*/**/*" ""
@@ -138,9 +123,7 @@ testMatch = do
     matchN "*/**/*" "x"
     matchN "*//*//*" "x/y"
     matchN "*/**/*/**/*" "x/y"
-    -- matchY "//*/" "//" [""]
     matchY "**/*/" "/" ["",""]
-    -- matchY "*/////" "/" [""]
     matchY "*/**/**/" "/" ["","",""]
     matchN "b*b*b*//" "bb"
     matchN "b*b*b*/**" "bb"
@@ -153,12 +136,11 @@ testMatch = do
     matchY "**" "C:\\drive" ["C:"++s:"drive"]
     matchY "**" "C:drive" ["C:drive"]
 
-    -- We support ignoring '.' values in FilePath as they are inserted by @filepath@ a lot
-    -- matchY "./file" "file" []
+    matchN "./file" "file"
     matchN "/file" "file"
-    -- matchY "foo/./bar" "foo/bar" []
+    matchN "foo/./bar" "foo/bar"
     matchY "foo/./bar" "foo/./bar" []
-    -- matchY "foo/./bar" "foo/bar" []
+    matchN "foo/./bar" "foo/bar"
 
 
 {-

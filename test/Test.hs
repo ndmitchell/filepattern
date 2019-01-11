@@ -64,13 +64,13 @@ showWalk (WalkTo (p,xs)) = "WalkTo " ++ pair (show p) (list [pair (show a) (show
 
 main :: IO ()
 main = do
-    putStr "Testing..."
+    putStrLn "Testing..."
     testCases
     T.TestData{..} <- T.unsafeTestData
-    putStrLn $ "Specific test cases passed (" ++ show testDataCases ++ ")"
+    putStrLn $ "Passed " ++ show testDataCases ++ " specific cases"
     -- when False $ dot $ testWalk s
-    putStr " "
     testProperties $ testDataPats ++ testDataPaths
+    putStrLn "SUCCESS (all tests completed)"
 
 
 {-
@@ -102,6 +102,7 @@ testWalk Switch{..} = do
 testProperties :: [String] -> IO ()
 testProperties xs = do
     forM_ xs $ \x -> forM_ xs $ \y -> prop x y
+    putStrLn $ "Passed " ++ show (length xs ^ 2) ++ " properties on specific cases"
     Success{} <- quickCheckWithResult stdArgs{maxSuccess=10000} $ \(ArbPattern p) (ArbPath x) ->
         (if p ?== x then label "match" else property) $ unsafePerformIO $ prop p x >> return True
     return ()

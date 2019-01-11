@@ -10,7 +10,6 @@ import Control.Monad.Extra
 import Data.List.Extra
 import Data.Semigroup
 import Data.Functor
-import Data.Foldable(foldMap)
 import qualified Data.List.NonEmpty as NE
 import Prelude
 
@@ -40,7 +39,7 @@ instance Semigroup (Step a) where
             {stepEmpty = all stepEmpty ss
             ,stepDone = concatMap stepDone ss
             ,stepRelevant = nubOrd <$> concatMapM stepRelevant ss
-            ,stepApply = \x -> foldMap (`stepApply` x) ss
+            ,stepApply = \x -> mconcat $ map (`stepApply` x) ss
             }
 
 instance Monoid (Step a) where

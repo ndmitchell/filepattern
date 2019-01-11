@@ -1,4 +1,4 @@
-{-# LANGUAGE LambdaCase, DeriveFunctor #-}
+{-# LANGUAGE DeriveFunctor #-}
 
 -- | Some useful Monads
 module System.FilePattern.Monads(
@@ -20,7 +20,7 @@ instance Applicative (Next e) where
         Just (es, f x)
 
 getNext :: Next e e
-getNext = Next $ \case
+getNext = Next $ \x -> case x of
     e:es -> Just (es, e)
     _ -> Nothing
 

@@ -1,0 +1,6 @@
+# HLint configuration file
+# https://github.com/ndmitchell/hlint
+##########################
+
+# Warnings currently triggered by the code
+- ignore: {name: "Use lambda-case"} # Not supported by GHC 7.4

@@ -1,6 +1,7 @@
 {-# LANGUAGE RecordWildCards #-}
 
 module Test.Util(
+    assertBool, (#=),
     matchY, matchN,
     simple,
     arity,

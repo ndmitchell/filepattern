@@ -15,14 +15,6 @@ import Test.Cases
 ---------------------------------------------------------------------
 -- TEST UTILITIES
 
-assertBool :: Bool -> String -> [String] -> IO ()
-assertBool b msg fields = unless b $ error $ unlines $
-    ("ASSERTION FAILED: " ++ msg) : fields
-
-(#=) :: Show a => String -> a -> String
-(#=) a b = a ++ ": " ++ show b
-
-
 newtype ArbPattern = ArbPattern FilePattern deriving (Show,Eq)
 newtype ArbPath    = ArbPath    FilePath    deriving (Show,Eq)
 
@@ -84,9 +76,9 @@ testProperties xs = do
         prop :: FilePattern -> FilePath -> IO ()
         prop pat file = do
             let b = pat ?== file
-            let fields = ["Pattern" #= pat, "File" #= file, "?==" #= b]
-            let res = FilePattern.match pat file in assertBool (b == isJust res) "match" $ fields ++ ["match" #= res]
+            let fields = ["Pattern" T.#= pat, "File" T.#= file, "?==" T.#= b]
+            let res = FilePattern.match pat file in T.assertBool (b == isJust res) "match" $ fields ++ ["match" T.#= res]
             -- when False $ let res = walkerMatch switch pat file in assertBool (b == res) "walker" $ fields ++ ["walker" #= res]
             let norm = (\x -> if null x then [""] else x) . filter (/= ".") . split isPathSeparator
             when b $ let res = substitute pat (fromJust $ FilePattern.match pat file) in
-                assertBool (norm res == norm file) "substitute" $ fields ++ ["Match" #= FilePattern.match pat file, "Got" #= res, "Input (norm)" #= norm file, "Got (norm)" #= norm res]
+                T.assertBool (norm res == norm file) "substitute" $ fields ++ ["Match" T.#= FilePattern.match pat file, "Got" T.#= res, "Input (norm)" T.#= norm file, "Got (norm)" T.#= norm res]

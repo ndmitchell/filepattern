@@ -58,7 +58,7 @@ instance Monoid (Step a) where
 --   avoid descending into directories which cannot match.
 step :: [(FilePattern, a)] -> Step a
 step [pat] = step1 pat
-step xs = foldMap step1 xs
+step xs = mconcat $ map step1 xs -- not foldMap, see above
 
 step1 :: (FilePattern, a) -> Step a
 step1 (parsePattern -> pat, val) = f []

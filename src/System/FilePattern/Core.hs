@@ -9,9 +9,11 @@ module System.FilePattern.Core(
     ) where
 
 import Data.Functor
+import Control.Applicative
 import System.FilePattern.Wildcard
 import System.FilePath (isPathSeparator)
 import Data.Either.Extra
+import Data.Traversable
 import qualified Data.Foldable as F
 import System.FilePattern.Monads
 import Data.List.Extra

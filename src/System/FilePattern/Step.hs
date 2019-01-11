@@ -35,7 +35,7 @@ instance Semigroup (Step a) where
         | otherwise = Step
             {stepEmpty = all stepEmpty ss
             ,stepDone = concatMap stepDone ss
-            ,stepRelevant = fmap (nubOrd . concat) $ traverse stepRelevant ss
+            ,stepRelevant = nubOrd . concat <$> traverse stepRelevant ss
             ,stepApply = \x -> foldMap (`stepApply` x) ss
             }
 

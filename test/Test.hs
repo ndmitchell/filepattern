@@ -70,7 +70,7 @@ main = do
     putStrLn $ "Specific test cases passed (" ++ show testDataCases ++ ")"
     -- when False $ dot $ testWalk s
     putStr " "
-    testProperties []
+    testProperties $ testDataPats ++ testDataPaths
 
 
 {-

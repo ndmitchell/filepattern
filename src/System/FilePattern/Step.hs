@@ -8,11 +8,12 @@ module System.FilePattern.Step(
 import System.FilePattern.Core
 
 
+-- | The result of 'step'.
 data Step a = Step
-    {stepEmpty :: Bool -- if False then stepApply any number of times will never result in stepDone being non-empty
-    ,stepDone :: [([String], a)] -- List of things that are done at this step, in order they were passed to step
-    ,stepRelevant :: Maybe [String] -- If Just then a superset of the things that will return interesting results
-    ,stepApply :: [String] -> Step a -- Apply a set of path components
+    {stepEmpty :: Bool -- ^ if False then stepApply any number of times will never result in stepDone being non-empty
+    ,stepDone :: [([String], a)] -- ^ List of things that are done at this step, in order they were passed to 'step'
+    ,stepRelevant :: Maybe [String] -- ^ If Just then a superset of the things that will return interesting results
+    ,stepApply :: [String] -> Step a -- ^ Apply a set of path components
     }
     deriving Functor
 

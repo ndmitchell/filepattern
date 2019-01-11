@@ -43,17 +43,11 @@ test-suite filepattern-test
     default-language: Haskell2010
     type: exitcode-stdio-1.0
     main-is: Test.hs
-    hs-source-dirs: src
+    hs-source-dirs: test
 
     build-depends:
         base == 4.*,
         extra,
+        filepattern,
         filepath,
         QuickCheck >= 2.0
-    other-modules:
-        System.FilePattern
-        System.FilePattern.Core
-        System.FilePattern.ListBy
-        System.FilePattern.Monads
-        System.FilePattern.Step
-        System.FilePattern.Wildcard

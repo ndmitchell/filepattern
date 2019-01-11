@@ -51,4 +51,5 @@ test-suite filepattern-test
         filepath,
         QuickCheck >= 2.0
     other-modules:
+        Test.Cases
         Test.Util

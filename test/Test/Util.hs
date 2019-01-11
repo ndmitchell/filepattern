@@ -1,7 +1,7 @@
 {-# LANGUAGE RecordWildCards #-}
 
 module Test.Util(
-    match, matchY, matchN,
+    matchY, matchN,
     simple,
     arity,
     substitute, substituteErr,

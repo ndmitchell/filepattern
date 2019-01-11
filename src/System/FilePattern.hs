@@ -95,5 +95,5 @@ substitute :: Partial => FilePattern -> [String] -> FilePath
 substitute w xs = maybe (error msg) renderPath $ Core.substitute (parsePattern w) xs
     where
         msg = "Failed substitute, patterns of different arity. Pattern " ++ show w ++
-              " expects " ++ show (arity w) ++ " elements, but got " ++ show xs ++
-              " which has " ++ show (length xs) ++ "."
+              " expects " ++ show (arity w) ++ " elements, but got " ++ show (length xs) ++
+              " namely " ++ show xs ++ "."

@@ -103,9 +103,8 @@ testSubstitute = do
     T.substitute "**/*a*.txt" ["","test","da"] "testada.txt"
     T.substitute "**/*a.txt" ["foo/bar","test"] "foo/bar/testa.txt"
     -- error if the number of replacements is wrong
-    -- assertException (deep $ substitute ["test"] "nothing") ["substitute","wanted 0","got 1","test","nothing"] "substitute" []
-    -- assertException (deep $ substitute ["test"] "*/*") ["substitute","wanted 2","got 1","test","*/*"] "substitute" []
-    T.substituteErr "nothing" ["test"] ["substitute"]
+    T.substituteErr "nothing" ["test"] ["substitute","nothing","expects 0","got 1","test"]
+    T.substituteErr "*/*" ["test"] ["substitute","*/*","expects 2","got 1","test"]
 
 
 testMatch :: IO ()

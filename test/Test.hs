@@ -109,126 +109,121 @@ testSubstitute = do
 
 testMatch :: IO ()
 testMatch = do
-    let f a b c = assertBool (res == c) "match" ["Pattern" #= a, "File" #= b, "Expected" #= c, "Got" #= res]
-            where res = match a b
-    let yes a b c = f a b $ Just c
-    let no a b = f a b Nothing
+    T.matchN "//*.c" "foo/bar/baz.c"
+    --T.matchY "//*.c" "/baz.c" ["baz"]
+    T.matchY "**/*.c" "foo/bar/baz.c" ["foo/bar","baz"]
+    T.matchY ("**" </> "*.c") ("foo/bar" </> "baz.c") ["foo/bar","baz"]
+    T.matchY "*.c" "baz.c" ["baz"]
+    T.matchN "//*.c" "baz.c"
+    T.matchY "**/*.c" "baz.c" ["","baz"]
+    T.matchY "**/*a.txt" "foo/bar/testa.txt" ["foo/bar","test"]
+    T.matchN "**/*.c" "baz.txt"
+    T.matchY "**/*a.txt" "testa.txt" ["","test"]
+    T.matchY "**/a.txt" "a.txt" [""]
+    T.matchY "a/**/b" "a/b" [""]
+    T.matchY "a/**/b" "a/x/b" ["x"]
+    T.matchY "a/**/b" "a/x/y/b" ["x/y"]
+    T.matchY "a/**/**/b" "a/x/y/b" ["","x/y"]
+    T.matchY "**/*a*.txt" "testada.txt" ["","test","da"]
+    T.matchY "test.c" "test.c" []
+    T.matchN "*.c" "foor/bar.c"
+    T.matchN "*/*.c" "foo/bar/baz.c"
+    T.matchN "foo//bar" "foobar"
+    T.matchN "foo/**/bar" "foobar"
+    T.matchN "foo//bar" "foobar/bar"
+    T.matchN "foo/**/bar" "foobar/bar"
+    T.matchN "foo//bar" "foo/foobar"
+    T.matchN "foo/**/bar" "foo/foobar"
+    -- T.matchY "foo//bar" "foo/bar" []
+    T.matchY "foo/**/bar" "foo/bar" [""]
+    T.matchY "foo/bar" ("foo" </> "bar") []
+    T.matchY ("foo" </> "bar") "foo/bar" []
+    T.matchY ("foo" </> "bar") ("foo" </> "bar") []
+    T.matchY "**/*.c" ("bar" </> "baz" </> "foo.c") ["bar/baz","foo"]
+    -- T.matchY "//*" "/bar" ["bar"]
+    T.matchY "**/*" "/bar" ["/","bar"]
+    T.matchN "/bob//foo" "/bob/this/test/foo"
+    -- T.matchY "/bob//foo" "/bob/foo" []
+    T.matchY "/bob/**/foo" "/bob/this/test/foo" ["this/test"]
+    T.matchN "/bob//foo" "bob/this/test/foo"
+    T.matchN "/bob/**/foo" "bob/this/test/foo"
+    T.matchN "bob//foo/" "bob/this/test/foo/"
+    -- T.matchY "bob//foo/" "bob/foo/" []
+    T.matchY "bob/**/foo/" "bob/this/test/foo/" ["this/test"]
+    T.matchY "bob/**/foo/" "bob/foo/" [""]
+    T.matchY "bob/**/foo/" "bob//foo/" ["/"]
+    T.matchN "bob//foo/" "bob/this/test/foo"
+    T.matchN "bob/**/foo/" "bob/this/test/foo"
+    T.matchY ("**" </> "*a*.txt") "testada.txt" ["","test","da"]
+    T.matchN "a//" "a"
+    T.matchY "a/**" "a" [""]
+    -- T.matchY "a//" "a/" []
+    T.matchN "/a//" "/a"
+    T.matchY "a/**" "a" [""]
+    -- T.matchY "/a//" "/a/" []
+    T.matchY "/a/**" "/a" [""]
+    T.matchN "///a//" "/a"
+    -- T.matchY "///a//" "/a/" []
+    T.matchY "**/a/**" "/a" ["/",""]
+    T.matchN "///" ""
+    -- T.matchY "///" "/" []
+    T.matchY "/**" "/" ["/"]
+    T.matchY "**/" "a/" ["a"]
+    -- T.matchY "////" "/" []
+    -- T.matchY "**/**" "" ["","/"]
+    T.matchY "x/**/y" "x/y" [""]
+    -- T.matchY "x///" "x/" []
+    T.matchY "x/**/" "x/" [""]
+    T.matchY "x/**/" "x/foo/" ["foo"]
+    T.matchN "x///" "x"
+    T.matchN "x/**/" "x"
+    T.matchY "x/**/" "x/foo/bar/" ["foo/bar"]
+    T.matchN "x///" "x/foo/bar"
+    T.matchN "x/**/" "x/foo/bar"
+    -- T.matchY "x///y" "x/y" []
+    T.matchY "x/**/*/y" "x/z/y" ["","z"]
+    T.matchY "" "" []
+    T.matchN "" "y"
+    T.matchN "" "/"
 
-    no "//*.c" "foo/bar/baz.c"
-    --yes "//*.c" "/baz.c" ["baz"]
-    yes "**/*.c" "foo/bar/baz.c" ["foo/bar","baz"]
-    yes ("**" </> "*.c") ("foo/bar" </> "baz.c") ["foo/bar","baz"]
-    yes "*.c" "baz.c" ["baz"]
-    no "//*.c" "baz.c"
-    yes "**/*.c" "baz.c" ["","baz"]
-    yes "**/*a.txt" "foo/bar/testa.txt" ["foo/bar","test"]
-    no "**/*.c" "baz.txt"
-    yes "**/*a.txt" "testa.txt" ["","test"]
-    yes "**/a.txt" "a.txt" [""]
-    yes "a/**/b" "a/b" [""]
-    yes "a/**/b" "a/x/b" ["x"]
-    yes "a/**/b" "a/x/y/b" ["x/y"]
-    yes "a/**/**/b" "a/x/y/b" ["","x/y"]
-    yes "**/*a*.txt" "testada.txt" ["","test","da"]
-    yes "test.c" "test.c" []
-    no "*.c" "foor/bar.c"
-    no "*/*.c" "foo/bar/baz.c"
-    no "foo//bar" "foobar"
-    no "foo/**/bar" "foobar"
-    no "foo//bar" "foobar/bar"
-    no "foo/**/bar" "foobar/bar"
-    no "foo//bar" "foo/foobar"
-    no "foo/**/bar" "foo/foobar"
-    -- yes "foo//bar" "foo/bar" []
-    yes "foo/**/bar" "foo/bar" [""]
-    yes "foo/bar" ("foo" </> "bar") []
-    yes ("foo" </> "bar") "foo/bar" []
-    yes ("foo" </> "bar") ("foo" </> "bar") []
-    yes "**/*.c" ("bar" </> "baz" </> "foo.c") ["bar/baz","foo"]
-    -- yes "//*" "/bar" ["bar"]
-    yes "**/*" "/bar" ["/","bar"]
-    no "/bob//foo" "/bob/this/test/foo"
-    -- yes "/bob//foo" "/bob/foo" []
-    yes "/bob/**/foo" "/bob/this/test/foo" ["this/test"]
-    no "/bob//foo" "bob/this/test/foo"
-    no "/bob/**/foo" "bob/this/test/foo"
-    no "bob//foo/" "bob/this/test/foo/"
-    -- yes "bob//foo/" "bob/foo/" []
-    yes "bob/**/foo/" "bob/this/test/foo/" ["this/test"]
-    yes "bob/**/foo/" "bob/foo/" [""]
-    yes "bob/**/foo/" "bob//foo/" ["/"]
-    no "bob//foo/" "bob/this/test/foo"
-    no "bob/**/foo/" "bob/this/test/foo"
-    yes ("**" </> "*a*.txt") "testada.txt" ["","test","da"]
-    no "a//" "a"
-    yes "a/**" "a" [""]
-    -- yes "a//" "a/" []
-    no "/a//" "/a"
-    yes "a/**" "a" [""]
-    -- yes "/a//" "/a/" []
-    yes "/a/**" "/a" [""]
-    no "///a//" "/a"
-    -- yes "///a//" "/a/" []
-    yes "**/a/**" "/a" ["/",""]
-    no "///" ""
-    -- yes "///" "/" []
-    yes "/**" "/" ["/"]
-    yes "**/" "a/" ["a"]
-    -- yes "////" "/" []
-    -- yes "**/**" "" ["","/"]
-    yes "x/**/y" "x/y" [""]
-    -- yes "x///" "x/" []
-    yes "x/**/" "x/" [""]
-    yes "x/**/" "x/foo/" ["foo"]
-    no "x///" "x"
-    no "x/**/" "x"
-    yes "x/**/" "x/foo/bar/" ["foo/bar"]
-    no "x///" "x/foo/bar"
-    no "x/**/" "x/foo/bar"
-    -- yes "x///y" "x/y" []
-    yes "x/**/*/y" "x/z/y" ["","z"]
-    yes "" "" []
-    no "" "y"
-    no "" "/"
+    T.matchY "*/*" "x/y" ["x","y"]
+    T.matchN "*/*" "x"
+    -- T.matchY "//*" "/x" ["x"]
+    T.matchY "**/*" "x" ["","x"]
+    -- T.matchY "//*" "/" [""]
+    -- T.matchY "**/*" "" ["",""]
+    -- T.matchY "*//" "x/" ["x"]
+    T.matchY "*/**" "x" ["x",""]
+    -- T.matchY "*//" "/" [""]
+    -- T.matchY "*//*" "x/y" ["x","y"]
+    T.matchY "*/**/*" "x/y" ["x","","y"]
+    T.matchN "*//*" ""
+    T.matchN "*/**/*" ""
+    T.matchN "*//*" "x"
+    T.matchN "*/**/*" "x"
+    T.matchN "*//*//*" "x/y"
+    T.matchN "*/**/*/**/*" "x/y"
+    -- T.matchY "//*/" "//" [""]
+    T.matchY "**/*/" "/" ["",""]
+    -- T.matchY "*/////" "/" [""]
+    T.matchY "*/**/**/" "/" ["","",""]
+    T.matchN "b*b*b*//" "bb"
+    T.matchN "b*b*b*/**" "bb"
 
-    yes "*/*" "x/y" ["x","y"]
-    no "*/*" "x"
-    -- yes "//*" "/x" ["x"]
-    yes "**/*" "x" ["","x"]
-    -- yes "//*" "/" [""]
-    -- yes "**/*" "" ["",""]
-    -- yes "*//" "x/" ["x"]
-    yes "*/**" "x" ["x",""]
-    -- yes "*//" "/" [""]
-    -- yes "*//*" "x/y" ["x","y"]
-    yes "*/**/*" "x/y" ["x","","y"]
-    no "*//*" ""
-    no "*/**/*" ""
-    no "*//*" "x"
-    no "*/**/*" "x"
-    no "*//*//*" "x/y"
-    no "*/**/*/**/*" "x/y"
-    -- yes "//*/" "//" [""]
-    yes "**/*/" "/" ["",""]
-    -- yes "*/////" "/" [""]
-    yes "*/**/**/" "/" ["","",""]
-    no "b*b*b*//" "bb"
-    no "b*b*b*/**" "bb"
-
-    yes "**" "/" ["//"] -- UGLY corner case
-    yes "**/x" "/x" ["/"]
-    yes "**" "x/" ["x/"]
+    T.matchY "**" "/" ["//"] -- UGLY corner case
+    T.matchY "**/x" "/x" ["/"]
+    T.matchY "**" "x/" ["x/"]
     let s = if isWindows then '/' else '\\'
-    yes "**" "\\\\drive" [s:s:"drive"]
-    yes "**" "C:\\drive" ["C:"++s:"drive"]
-    yes "**" "C:drive" ["C:drive"]
+    T.matchY "**" "\\\\drive" [s:s:"drive"]
+    T.matchY "**" "C:\\drive" ["C:"++s:"drive"]
+    T.matchY "**" "C:drive" ["C:drive"]
 
     -- We support ignoring '.' values in FilePath as they are inserted by @filepath@ a lot
-    -- yes "./file" "file" []
-    no "/file" "file"
-    -- yes "foo/./bar" "foo/bar" []
-    yes "foo/./bar" "foo/./bar" []
-    -- yes "foo/./bar" "foo/bar" []
+    -- T.matchY "./file" "file" []
+    T.matchN "/file" "file"
+    -- T.matchY "foo/./bar" "foo/bar" []
+    T.matchY "foo/./bar" "foo/./bar" []
+    -- T.matchY "foo/./bar" "foo/bar" []
 
 {-
 testWalk :: Switch -> IO ()

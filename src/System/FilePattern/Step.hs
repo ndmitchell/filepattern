@@ -6,6 +6,9 @@ module System.FilePattern.Step(
     ) where
 
 import System.FilePattern.Core
+import Data.List.Extra
+import Data.Semigroup
+import qualified Data.List.NonEmpty as NE
 
 
 -- | The result of 'step', used to process successive path components of a set of 'FilePath's.
@@ -23,6 +26,22 @@ data Step a = Step
         -- ^ Apply one component from a 'FilePath' to get a new 'Step'.
     }
     deriving Functor
+
+
+instance Semigroup (Step a) where
+    a <> b = sconcat $ NE.fromList [a,b]
+    sconcat ss = Step
+        {stepEmpty = all stepEmpty ss
+        ,stepDone = concatMap stepDone ss
+        ,stepRelevant = fmap (nubOrd . concat) $ traverse stepRelevant ss
+        ,stepApply = \x -> foldMap (`stepApply` x) ss
+        }
+
+instance Monoid (Step a) where
+    mempty = Step True [] (Just []) $ const mempty
+    mappend = (<>)
+    mconcat = maybe mempty sconcat . NE.nonEmpty
+
 
 -- | Efficient matching of a set of 'FilePattern's against a set of 'FilePath's.
 --   First call 'step' passing in all the 'FilePattern's, with a tag for each one.

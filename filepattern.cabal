@@ -29,6 +29,8 @@ library
         base == 4.*,
         extra >= 1.6.2,
         filepath
+    if impl(ghc < 8.0)
+        build-depends: semigroups >= 0.18
     exposed-modules:
         System.FilePattern
     other-modules:

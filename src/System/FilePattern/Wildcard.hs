@@ -23,6 +23,7 @@ import Data.Functor
 import Data.List.Extra
 import Control.Monad.Extra
 import System.FilePattern.ListBy
+import Data.Traversable
 import Prelude
 
 

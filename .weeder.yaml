@@ -1,6 +1,0 @@
-# Weeder configuration file
-# https://github.com/ndmitchell/weeder
-##########################
-
-# There are internals we want to test, but don't want to expose
-- message: Module reused between components

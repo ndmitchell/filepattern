@@ -11,7 +11,7 @@ module Test.Util(
 import Control.Exception.Extra
 import Control.Monad.Extra
 import Data.List.Extra
-import Data.IORef
+import Data.IORef.Extra
 import System.FilePattern(FilePattern)
 import qualified System.FilePattern as FP
 import System.IO.Unsafe

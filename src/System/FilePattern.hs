@@ -6,12 +6,8 @@
 -- True
 
 module System.FilePattern(
-    -- * Primitive API
-    FilePattern, (?==), match,
-    -- * Optimisation opportunities
-    simple, arity,
-    -- * Multipattern file rules
-    substitute,
+    -- * Using FilePattern values
+    FilePattern, (?==), match, substitute, arity,
     -- * Accelerated searching
     Step(..), step
     ) where
@@ -74,10 +70,6 @@ match w = Core.match (parsePattern w) . parsePath
 
 ---------------------------------------------------------------------
 -- MULTIPATTERN COMPATIBLE SUBSTITUTIONS
-
--- | Is the pattern free from any @*@ and @**@.
-simple :: FilePattern -> Bool
-simple w = arity w == 0
 
 -- | How many @*@ and @**@ elements are there.
 arity :: FilePattern -> Int

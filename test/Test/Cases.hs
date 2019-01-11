@@ -7,22 +7,17 @@ import System.Info.Extra
 
 
 testCases :: IO ()
-testCases = testMatch >> testSimple >> testArity >> testSubstitute
-
-
-testSimple :: IO ()
-testSimple = do
-    simple "a*b" False
-    simple "a//b" True
-    simple "a/**/b" False
-    simple "/a/b/cccc_" True
-    simple "a///b" True
-    simple "a/**/b" False
+testCases = testMatch >> testArity >> testSubstitute
 
 
 testArity :: IO ()
 testArity = do
     arity "" 0
+    arity "a*b" 1
+    arity "a//b" 0
+    arity "a/**/b" 1
+    arity "/a/b/cccc_" 0
+    arity "a///b" 0
     arity "foo/**/*" 2
     arity "//*a.txt" 1
     arity "foo//a*.txt" 1

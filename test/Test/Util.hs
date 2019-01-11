@@ -3,7 +3,6 @@
 module Test.Util(
     assertBool, (#=),
     matchY, matchN,
-    simple,
     arity,
     substitute, substituteErr,
     TestData(..), unsafeTestData,
@@ -73,12 +72,6 @@ matchY pat path xs = match pat path $ Just xs
 matchN :: Partial => FilePattern -> FilePath -> IO ()
 matchN pat path = match pat path Nothing
 
-
-simple :: Partial => FilePattern -> Bool -> IO ()
-simple pat want = do
-    addTestData [pat] []
-    let got = FP.simple pat
-    assertBool (want == got) "simple" ["Pattern" #= pat, "Expected" #= want, "Got" #= got]
 
 arity :: Partial => FilePattern -> Int -> IO ()
 arity pat want = do

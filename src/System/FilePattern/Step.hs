@@ -56,9 +56,9 @@ step [pat] = step1 pat
 step xs = foldMap step1 xs
 
 step1 :: (FilePattern, a) -> Step a
-step1 (pat, val) = f []
+step1 (parsePattern -> pat, val) = f []
     where
         f rpath = Step False (g $ reverse rpath) Nothing (\x -> f $ x : rpath)
-        g path = case match (parsePattern pat) $ mkPath path of
+        g path = case match pat $ mkPath path of
             Nothing -> []
             Just v -> [(v, val)]

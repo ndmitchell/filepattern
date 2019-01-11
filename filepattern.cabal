@@ -44,10 +44,11 @@ test-suite filepattern-test
     type: exitcode-stdio-1.0
     main-is: Test.hs
     hs-source-dirs: test
-
     build-depends:
         base == 4.*,
         extra,
         filepattern,
         filepath,
         QuickCheck >= 2.0
+    other-modules:
+        Test.Util

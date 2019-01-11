@@ -1,9 +1,9 @@
 
 module Main(main) where
 
-import Control.Exception.Extra
 import Control.Monad.Extra
 import Data.List.Extra
+import qualified Test.Util as T
 import Data.Maybe
 import System.FilePattern as FilePattern
 import System.FilePath(isPathSeparator, (</>))
@@ -18,13 +18,6 @@ import Test.QuickCheck
 assertBool :: Bool -> String -> [String] -> IO ()
 assertBool b msg fields = unless b $ error $ unlines $
     ("ASSERTION FAILED: " ++ msg) : fields
-
-assertException :: IO () -> [String] -> String -> [String] -> IO ()
-assertException a parts msg fields = do
-    res <- try_ a
-    case res of
-        Left e -> assertBool (all (`isInfixOf` show e) parts) msg $ ["Expected" #= parts, "Got" #= e] ++ fields
-        Right _ -> assertBool False msg $ ["Expected" #= parts, "Got" #= "<No exception>"] ++ fields
 
 (#=) :: Show a => String -> a -> String
 (#=) a b = a ++ ": " ++ show b
@@ -84,42 +77,35 @@ main = do
 
 testSimple :: IO ()
 testSimple = do
-    let x # y = assertBool (res == y) "simple" ["Input" #= x, "Expected" #= y, "Got" #= res]
-            where res = simple x
-    "a*b" # False
-    "a//b" # True
-    "a/**/b" # False
-    "/a/b/cccc_" # True
-    "a///b" # True
-    "a/**/b" # False
+    T.simple "a*b" False
+    T.simple "a//b" True
+    T.simple "a/**/b" False
+    T.simple "/a/b/cccc_" True
+    T.simple "a///b" True
+    T.simple "a/**/b" False
 
 
 testArity :: IO ()
 testArity = do
-    let x # y = assertBool (res == y) "arity" ["Input" #= x, "Expected" #= y, "Got" #= res]
-            where res = arity x
-    "" # 0
-    "foo/**/*" # 2
-    "//*a.txt" # 1
-    "foo//a*.txt" # 1
-    "**/*a.txt" # 2
-    "foo/**/a*.txt" # 2
-    "//*a.txt" # 1
-    "foo//a*.*txt" # 2
-    "foo/**/a*.*txt" # 3
+    T.arity "" 0
+    T.arity "foo/**/*" 2
+    T.arity "//*a.txt" 1
+    T.arity "foo//a*.txt" 1
+    T.arity "**/*a.txt" 2
+    T.arity "foo/**/a*.txt" 2
+    T.arity "//*a.txt" 1
+    T.arity "foo//a*.*txt" 2
+    T.arity "foo/**/a*.*txt" 3
 
 
 testSubstitute :: IO ()
 testSubstitute = do
-    let f a b c = assertBool (res == c) "substitute" ["Parts" #= a, "Pattern" #= b, "Expected" #= c, "Got" #= res]
-            where res = substitute b a
-    f ["","test","da"] "**/*a*.txt" "testada.txt"
-    f ["foo/bar","test"] "**/*a.txt" "foo/bar/testa.txt"
-    let deep = void . evaluate . length . show
+    T.substitute "**/*a*.txt" ["","test","da"] "testada.txt"
+    T.substitute "**/*a.txt" ["foo/bar","test"] "foo/bar/testa.txt"
     -- error if the number of replacements is wrong
     -- assertException (deep $ substitute ["test"] "nothing") ["substitute","wanted 0","got 1","test","nothing"] "substitute" []
     -- assertException (deep $ substitute ["test"] "*/*") ["substitute","wanted 2","got 1","test","*/*"] "substitute" []
-    assertException (deep $ substitute "nothing" ["test"]) ["substitute"] "substitute" []
+    T.substituteErr "nothing" ["test"] ["substitute"]
 
 
 testMatch :: IO ()

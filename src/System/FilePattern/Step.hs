@@ -1,4 +1,4 @@
-{-# LANGUAGE DeriveFunctor #-}
+{-# LANGUAGE ViewPatterns, DeriveFunctor #-}
 
 -- | Applying a set of paths vs a set of patterns efficiently
 module System.FilePattern.Step(
@@ -30,12 +30,14 @@ data Step a = Step
 
 instance Semigroup (Step a) where
     a <> b = sconcat $ NE.fromList [a,b]
-    sconcat ss = Step
-        {stepEmpty = all stepEmpty ss
-        ,stepDone = concatMap stepDone ss
-        ,stepRelevant = fmap (nubOrd . concat) $ traverse stepRelevant ss
-        ,stepApply = \x -> foldMap (`stepApply` x) ss
-        }
+    sconcat (NE.toList -> ss)
+        | [s] <- ss = s
+        | otherwise = Step
+            {stepEmpty = all stepEmpty ss
+            ,stepDone = concatMap stepDone ss
+            ,stepRelevant = fmap (nubOrd . concat) $ traverse stepRelevant ss
+            ,stepApply = \x -> foldMap (`stepApply` x) ss
+            }
 
 instance Monoid (Step a) where
     mempty = Step True [] (Just []) $ const mempty
@@ -50,9 +52,13 @@ instance Monoid (Step a) where
 --   Useful for efficient bulk searching, particularly directory scanning, where you can
 --   avoid descending into directories which cannot match.
 step :: [(FilePattern, a)] -> Step a
-step pats = f []
+step [pat] = step1 pat
+step xs = foldMap step1 xs
+
+step1 :: (FilePattern, a) -> Step a
+step1 (pat, val) = f []
     where
-        f rpath = Step False (concatMap (g $ reverse rpath) pats) Nothing (\x -> f $ x : rpath)
-        g path (pat, val) = case match (parsePattern pat) $ mkPath path of
+        f rpath = Step False (g $ reverse rpath) Nothing (\x -> f $ x : rpath)
+        g path = case match (parsePattern pat) $ mkPath path of
             Nothing -> []
             Just v -> [(v, val)]

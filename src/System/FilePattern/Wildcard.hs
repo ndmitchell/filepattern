@@ -25,7 +25,7 @@ import Control.Applicative
 import Control.Monad.Extra
 import System.FilePattern.ListBy
 import Data.Traversable
-import Data.Foldable
+import Data.Foldable hiding (concat)
 import Prelude
 
 

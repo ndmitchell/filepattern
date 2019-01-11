@@ -52,7 +52,7 @@ import Prelude
 --   Patterns with constructs such as @foo\/..\/bar@ will never match
 --   normalised 'FilePath' values, so are unlikely to be correct.
 (?==) :: FilePattern -> FilePath -> Bool
-(?==) w = isJust . Core.match (parsePattern w) . parsePath
+(?==) w = isJust . match w
 
 
 -- | Like '?==', but returns 'Nothing' on if there is no match, otherwise 'Just' with the list
@@ -76,7 +76,7 @@ match w = Core.match (parsePattern w) . parsePath
 
 -- | Is the pattern free from any @*@ and @**@.
 simple :: FilePattern -> Bool
-simple w = Core.arity (parsePattern w) == 0
+simple w = arity w == 0
 
 -- | How many @*@ and @**@ elements are there.
 arity :: FilePattern -> Int

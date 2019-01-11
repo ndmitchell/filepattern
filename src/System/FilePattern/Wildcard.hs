@@ -1,4 +1,4 @@
-{-# LANGUAGE DeriveFunctor, DeriveTraversable #-}
+{-# LANGUAGE DeriveFunctor, DeriveFoldable #-}
 
 -- | The type of wildcards, which generalises to both patterns
 --   inside a filename and along patterns. e.g.

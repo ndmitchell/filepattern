@@ -3,7 +3,7 @@
 module System.FilePattern.Core(
     FilePattern,
     Pattern, parsePattern,
-    Path, parsePath, renderPath,
+    Path, mkPath, parsePath, renderPath,
     match, substitute,
     arity
     ) where
@@ -33,6 +33,9 @@ type FilePattern = String
 
 newtype Path = Path [String]
     deriving (Show,Eq,Ord)
+
+mkPath :: [String] -> Path
+mkPath = Path
 
 newtype Pattern = Pattern (Wildcard [Wildcard String])
     deriving (Show,Eq,Ord)

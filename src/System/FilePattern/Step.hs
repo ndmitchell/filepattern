@@ -31,4 +31,9 @@ data Step a = Step
 --   Useful for efficient bulk searching, particularly directory scanning, where you can
 --   avoid descending into directories which cannot match.
 step :: [(FilePattern, a)] -> Step a
-step = undefined
+step pats = f []
+    where
+        f rpath = Step False (concatMap (g $ reverse rpath) pats) Nothing (\x -> f $ x : rpath)
+        g path (pat, val) = case match (parsePattern pat) $ mkPath path of
+            Nothing -> []
+            Just v -> [(v, val)]

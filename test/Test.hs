@@ -29,6 +29,13 @@ instance Arbitrary ArbPath where
     shrink (ArbPath x) = map ArbPath $ shrinkList (\x -> ['/' | x == '\\']) x
 
 
+runStep :: FilePattern -> FilePath -> Maybe [String]
+runStep pat path = f (step [(pat, ())]) $ split isPathSeparator path
+    where
+        f Step{..} [] = fst <$> listToMaybe stepDone
+        f Step{..} (x:xs) = f (stepApply x) xs
+
+
 {-
 -- | Write 'matchBool' in terms of 'walker'.
 walkerMatch :: Switch -> FilePattern -> FilePath -> Bool
@@ -75,10 +82,10 @@ testProperties xs = do
     where
         prop :: FilePattern -> FilePath -> IO ()
         prop pat file = do
-            let b = pat ?== file
-            let fields = ["Pattern" T.#= pat, "File" T.#= file, "?==" T.#= b]
-            let res = FilePattern.match pat file in T.assertBool (b == isJust res) "match" $ fields ++ ["match" T.#= res]
-            -- when False $ let res = walkerMatch switch pat file in assertBool (b == res) "walker" $ fields ++ ["walker" #= res]
+            let ans = match pat file
+            let fields = ["Pattern" T.#= pat, "File" T.#= file, "Match" T.#= ans]
+            let res = pat ?== file in T.assertBool (res == isJust ans) "?==" $ fields ++ ["?==" T.#= res]
+            let res = runStep pat file in T.assertBool (res == ans) "step" $ fields ++ ["step" T.#= res]
             let norm = (\x -> if null x then [""] else x) . filter (/= ".") . split isPathSeparator
-            when b $ let res = substitute pat (fromJust $ FilePattern.match pat file) in
+            when (isJust ans) $ let res = substitute pat (fromJust $ FilePattern.match pat file) in
                 T.assertBool (norm res == norm file) "substitute" $ fields ++ ["Match" T.#= FilePattern.match pat file, "Got" T.#= res, "Input (norm)" T.#= norm file, "Got (norm)" T.#= norm res]

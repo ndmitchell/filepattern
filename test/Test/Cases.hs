@@ -141,6 +141,7 @@ testMatch = do
     matchN "foo/./bar" "foo/bar"
     matchY "foo/./bar" "foo/./bar" []
     matchN "foo/./bar" "foo/bar"
+    matchY "**z" "xyz" ["","xy"]
 
 
 {-

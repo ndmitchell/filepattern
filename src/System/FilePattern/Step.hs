@@ -69,13 +69,13 @@ toPat (Pattern (Wildcard pre mid post)) = intercalate [StarStar] $ map lit $ pre
 --   Useful for efficient bulk searching, particularly directory scanning, where you can
 --   avoid descending into directories which cannot match.
 step :: [(FilePattern, a)] -> Step a
-step xs = fastFoldMap step1 xs
+step xs = fastFoldMap (step1 . first (toPat . parsePattern)) xs
 
 match1 :: Wildcard String -> String -> Maybe [String]
 match1 w x = rights <$> wildcardMatch equals w x
 
-step1 :: forall a . (FilePattern, a) -> Step a
-step1 (pat, val) = f id $ toPat $ parsePattern pat
+step1 :: forall a . ([Pat], a) -> Step a
+step1 (pat, val) = f id pat
     where
         -- given the prefix of the parts (as a difference list), and the rest of the pattern, calc the Step
         f :: ([String] -> [String]) -> [Pat] -> Step a

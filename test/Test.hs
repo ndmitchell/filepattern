@@ -87,6 +87,7 @@ testProperties xs = do
         prop pat file = do
             let ans = match pat file
             let fields = ["Pattern" T.#= pat, "File" T.#= file, "Match" T.#= ans]
+            whenJust ans $ \ans -> T.assertBool (length ans == arity pat) "arity" fields
             let res = pat ?== file in T.assertBool (res == isJust ans) "?==" $ fields ++ ["?==" T.#= res]
             let res = runStep pat file in T.assertBool (res == ans) "step" $ fields ++ ["step" T.#= res]
             let norm = (\x -> if null x then [""] else x) . filter (/= ".") . split isPathSeparator

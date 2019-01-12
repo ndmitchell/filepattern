@@ -32,11 +32,19 @@ instance Arbitrary ArbPath where
     shrink (ArbPath x) = map ArbPath $ shrinkList (\x -> ['/' | x == '\\']) x
 
 
-runStep :: FilePattern -> FilePath -> Maybe [String]
-runStep pat path = f (step [(pat, ())]) $ split isPathSeparator path
+runStepSimple :: FilePattern -> FilePath -> Maybe [String]
+runStepSimple pat path = f (step [(pat, ())]) $ split isPathSeparator path
     where
         f Step{..} [] = fst <$> listToMaybe stepDone
         f Step{..} (x:xs) = f (stepApply x) xs
+
+runStepComplex :: FilePattern -> FilePath -> Maybe [String]
+runStepComplex pat path = f (step [(pat, ())]) $ split isPathSeparator path
+    where
+        f Step{..} [] = fst <$> listToMaybe stepDone
+        f Step{..} (x:xs)
+            | Just poss <- stepNext, x `notElem` poss = Nothing
+            | otherwise = f (stepApply x) xs
 
 
 {-
@@ -89,7 +97,8 @@ testProperties xs = do
             let fields = ["Pattern" T.#= pat, "File" T.#= file, "Match" T.#= ans]
             whenJust ans $ \ans -> T.assertBool (length ans == arity pat) "arity" fields
             let res = pat ?== file in T.assertBool (res == isJust ans) "?==" $ fields ++ ["?==" T.#= res]
-            let res = runStep pat file in T.assertBool (res == ans) "step" $ fields ++ ["step" T.#= res]
+            let res = runStepSimple  pat file in T.assertBool (res == ans) "step (simple)" $ fields ++ ["step" T.#= res]
+            let res = runStepComplex pat file in T.assertBool (res == ans) "step (complex)" $ fields ++ ["step" T.#= res]
             let norm = (\x -> if null x then [""] else x) . filter (/= ".") . split isPathSeparator
             when (isJust ans) $ let res = substitute pat (fromJust $ FilePattern.match pat file) in
                 T.assertBool (norm res == norm file) "substitute" $ fields ++ ["Match" T.#= FilePattern.match pat file, "Got" T.#= res, "Input (norm)" T.#= norm file, "Got (norm)" T.#= norm res]

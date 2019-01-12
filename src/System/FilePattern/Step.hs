@@ -72,11 +72,12 @@ step :: [(FilePattern, a)] -> Step a
 step [pat] = step1 pat
 step xs = fastFoldMap step1 xs
 
+match1 :: Wildcard String -> String -> Maybe [String]
+match1 w x = rights <$> wildcardMatch equals w x
+
 step1 :: forall a . (FilePattern, a) -> Step a
 step1 (pat, val) = f id $ toPat $ parsePattern pat
     where
-        match1 w x = rights <$> wildcardMatch equals w x
-
         -- given the prefix of the parts (as a difference list), and the rest of the pattern, calc the Step
         f :: ([String] -> [String]) -> [Pat] -> Step a
 

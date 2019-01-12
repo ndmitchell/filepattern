@@ -69,7 +69,6 @@ toPat (Pattern (Wildcard pre mid post)) = intercalate [StarStar] $ map lit $ pre
 --   Useful for efficient bulk searching, particularly directory scanning, where you can
 --   avoid descending into directories which cannot match.
 step :: [(FilePattern, a)] -> Step a
-step [pat] = step1 pat
 step xs = fastFoldMap step1 xs
 
 match1 :: Wildcard String -> String -> Maybe [String]

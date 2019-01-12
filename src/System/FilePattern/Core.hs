@@ -4,6 +4,7 @@ module System.FilePattern.Core(
     FilePattern,
     Pattern(..), parsePattern,
     Path(..), parsePath, renderPath,
+    mkParts,
     match, substitute,
     arity
     ) where

@@ -59,7 +59,7 @@ fastFoldMap f = mconcat . map f -- important: use the fast mconcat
 --   avoid descending into directories which cannot match.
 step :: [(FilePattern, a)] -> Step a
 step [pat] = step1 pat
-step xs = fastFoldMap step1 xs -- not foldMap, see above
+step xs = fastFoldMap step1 xs
 
 step1 :: (FilePattern, a) -> Step a
 step1 (parsePattern -> pat, val) = f []

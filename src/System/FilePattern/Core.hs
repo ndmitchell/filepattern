@@ -2,8 +2,8 @@
 -- | The type of patterns and wildcards, and operations working on parsed versions.
 module System.FilePattern.Core(
     FilePattern,
-    Pattern, parsePattern,
-    Path, mkPath, parsePath, renderPath,
+    Pattern(..), parsePattern,
+    Path(..), parsePath, renderPath,
     match, substitute,
     arity
     ) where
@@ -33,9 +33,6 @@ type FilePattern = String
 
 newtype Path = Path [String]
     deriving (Show,Eq,Ord)
-
-mkPath :: [String] -> Path
-mkPath = Path
 
 newtype Pattern = Pattern (Wildcard [Wildcard String])
     deriving (Show,Eq,Ord)

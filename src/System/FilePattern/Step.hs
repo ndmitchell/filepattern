@@ -39,15 +39,16 @@ instance Semigroup (Step a) where
             {stepEmpty = all stepEmpty ss
             ,stepDone = concatMap stepDone ss
             ,stepRelevant = nubOrd <$> concatMapM stepRelevant ss
-            ,stepApply = \x -> mconcat $ map (`stepApply` x) ss
-                -- important to use mconcat, which has the sconcat optimisation
-                -- and NOT foldMap which doesn't
+            ,stepApply = \x -> fastFoldMap (`stepApply` x) ss
             }
 
 instance Monoid (Step a) where
     mempty = Step True [] (Just []) $ const mempty
     mappend = (<>)
-    mconcat = maybe mempty sconcat . NE.nonEmpty
+    mconcat = maybe mempty sconcat . NE.nonEmpty -- important: use the fast sconcat
+
+fastFoldMap :: Monoid m => (a -> m) -> [a] -> m
+fastFoldMap f = mconcat . map f -- important: use the fast mconcat
 
 
 -- | Efficient matching of a set of 'FilePattern's against a set of 'FilePath's.
@@ -58,7 +59,7 @@ instance Monoid (Step a) where
 --   avoid descending into directories which cannot match.
 step :: [(FilePattern, a)] -> Step a
 step [pat] = step1 pat
-step xs = mconcat $ map step1 xs -- not foldMap, see above
+step xs = fastFoldMap step1 xs -- not foldMap, see above
 
 step1 :: (FilePattern, a) -> Step a
 step1 (parsePattern -> pat, val) = f []

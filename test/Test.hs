@@ -42,27 +42,6 @@ runStepSimple pat path = f (step [((), pat)]) $ split isPathSeparator path
 runStepComplex :: FilePattern -> FilePath -> Maybe [String]
 runStepComplex pat path = fmap thd3 $ listToMaybe $ matchMany [((), pat)] [((), path)]
 
-{-
--- | Write 'matchBool' in terms of 'walker'.
-walkerMatch :: Switch -> FilePattern -> FilePath -> Bool
-walkerMatch Switch{..} a b = if null b2 then empty else maybe False (f b2) w
-    where
-        b2 = filter (/= ".") $ split isPathSeparator b
-        (empty, w) = walk [a]
-
-        f [x]    (Walk op) = fst $ op x
-        f [x]    (WalkTo (file, dir)) = x `elem` file
-        f (x:xs) (Walk op) = maybe False (f xs) $ snd $ op x
-        f (x:xs) (WalkTo (file, dir)) | Just w <- lookup x dir = f xs w
-        f _ _ = False
-
-showWalk :: Walk -> String
-showWalk (Walk _) = "Walk _"
-showWalk (WalkTo (p,xs)) = "WalkTo " ++ pair (show p) (list [pair (show a) (showWalk b) | (a,b) <- xs])
-    where
-        pair a b = "(" ++ a ++ "," ++ b ++ ")"
-        list xs = "[" ++ intercalate "," xs ++ "]"
--}
 
 ---------------------------------------------------------------------
 -- DRIVER

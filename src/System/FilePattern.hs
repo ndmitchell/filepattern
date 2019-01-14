@@ -1,4 +1,4 @@
-{-# LANGUAGE ConstraintKinds #-}
+{-# LANGUAGE ConstraintKinds, RecordWildCards, ScopedTypeVariables #-}
 
 -- | A module for pattern matching on file names.
 --
@@ -8,11 +8,12 @@
 module System.FilePattern(
     FilePattern, (?==), match, substitute, arity,
     -- * Multiple 'FilePattern' and 'FilePath'
-    step, Step(..),
+    step, Step(..), matchMany
     ) where
 
 import Control.Exception.Extra
 import Data.Maybe
+import Data.Tuple.Extra
 import Data.List.Extra
 import System.FilePattern.Core(FilePattern, parsePattern, parsePath, renderPath)
 import qualified System.FilePattern.Core as Core
@@ -91,3 +92,27 @@ substitute w xs = maybe (error msg) renderPath $ Core.substitute (parsePattern w
         msg = "Failed substitute, patterns of different arity. Pattern " ++ show w ++
               " expects " ++ show (arity w) ++ " elements, but got " ++ show (length xs) ++
               " namely " ++ show xs ++ "."
+
+
+-- | Match many 'FilePattern's against many 'FilePath's in a single operation.
+--   Note that the returned matches are not guaranteed to be in any particular order.
+--
+-- > matchMany [(a, pat)] [(b, path)] == maybeToList (map (a,b,) (match pat path))
+matchMany :: [(a, FilePattern)] -> [(b, FilePath)] -> [(a, b, [String])]
+matchMany pats = f (step pats) . makeTree
+    where
+        f Step{..} (Tree bs xs) = concat $
+            [(a, b, ps) | (a, ps) <- stepDone, b <- bs] :
+            [f (stepApply x) t | (x, t) <- xs, maybe True (x `elem`) stepNext]
+
+
+data Tree a = Tree [a] [(String, Tree a)]
+
+makeTree :: forall a . [(a, FilePath)] -> Tree a
+makeTree = f . sortOn snd . map (second $ (\(Core.Path x) -> x) . parsePath)
+    where
+        f :: [(a, [String])] -> Tree a
+        f xs = Tree (map fst empty) [(fst $ head gs, f $ map snd gs) | gs <- groups]
+            where
+                (empty, nonEmpty) = span (null . snd) xs
+                groups = groupOn fst [(x, (a,xs)) | (a,x:xs) <- nonEmpty]

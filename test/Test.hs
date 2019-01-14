@@ -5,6 +5,7 @@ module Main(main) where
 import Control.Monad.Extra
 import Data.List.Extra
 import Data.Functor
+import Data.Tuple.Extra
 import qualified Test.Util as T
 import Data.Maybe
 import System.FilePattern as FilePattern
@@ -39,13 +40,7 @@ runStepSimple pat path = f (step [((), pat)]) $ split isPathSeparator path
         f Step{..} (x:xs) = f (stepApply x) xs
 
 runStepComplex :: FilePattern -> FilePath -> Maybe [String]
-runStepComplex pat path = f (step [((), pat)]) $ split isPathSeparator path
-    where
-        f Step{..} [] = snd <$> listToMaybe stepDone
-        f Step{..} (x:xs)
-            | Just poss <- stepNext, x `notElem` poss = Nothing
-            | otherwise = f (stepApply x) xs
-
+runStepComplex pat path = fmap thd3 $ listToMaybe $ matchMany [((), pat)] [((), path)]
 
 {-
 -- | Write 'matchBool' in terms of 'walker'.

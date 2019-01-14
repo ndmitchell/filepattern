@@ -55,7 +55,6 @@ fastFoldMap f = mconcat . map f -- important: use the fast mconcat
 -- Invariant: No empty Lits
 data Pat = Lits [Wildcard String]
          | StarStar
-           deriving Show
 
 toPat :: Pattern -> [Pat]
 toPat (Pattern (Literal xs)) = [Lits xs]

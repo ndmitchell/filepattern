@@ -22,10 +22,11 @@ import Prelude
 data Step a = Step
     {stepDone :: [([String], a)]
         -- ^ The files that match at this step. Includes the list that would have been produced by 'System.FilePattern.match',
-        --   along with the values passed to 'step'.
+        --   along with the values passed to 'step'. These results are not necessarily in order.
     ,stepNext :: Maybe [String]
         -- ^ If 'Just' then all non-included components will result in dull 'Step' values from 'stepApply',
-        --   with 'stepNext' being @'Just' []@ and 'stepDone' being @[]@.
+        --   with 'stepNext' being @'Just' []@ and 'stepDone' being @[]@. The values in 'stepNext' form a set - their order
+        --   is irrelevant but there will be no duplicates in values arising from 'step'.
     ,stepApply :: String -> Step a
         -- ^ Apply one component from a 'FilePath' to get a new 'Step'.
     }

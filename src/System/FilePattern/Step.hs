@@ -20,7 +20,7 @@ import Prelude
 
 -- | The result of 'step', used to process successive path components of a set of 'FilePath's.
 data Step a = Step
-    {stepDone :: [([String], a)]
+    {stepDone :: [(a, [String])]
         -- ^ The files that match at this step. Includes the list that would have been produced by 'System.FilePattern.match',
         --   along with the values passed to 'step'. These results are not necessarily in order.
     ,stepNext :: Maybe [String]
@@ -68,19 +68,20 @@ toPat (Pattern (Wildcard pre mid post)) = intercalate [StarStar] $ map lit $ pre
 --
 --   Useful for efficient bulk searching, particularly directory scanning, where you can
 --   avoid descending into directories which cannot match.
-step :: [(FilePattern, a)] -> Step a
+step :: [(a, FilePattern)] -> Step a
+step = fastFoldMap (step1 . second (toPat . parsePattern))
 
 match1 :: Wildcard String -> String -> Maybe [String]
 match1 w x = rights <$> wildcardMatch equals w x
 
-step1 :: forall a . ([Pat], a) -> Step a
-step1 (pat, val) = f id pat
+step1 :: forall a . (a, [Pat]) -> Step a
+step1 (val, pat) = f id pat
     where
         -- given the prefix of the parts (as a difference list), and the rest of the pattern, calc the Step
         f :: ([String] -> [String]) -> [Pat] -> Step a
 
         -- normal path, dispatch on what you find next
-        f parts [] = mempty{stepDone = [(parts [], val)]}
+        f parts [] = mempty{stepDone = [(val, parts [])]}
 
         -- two stars in a row, the first will match nothing, the second everything
         f parts (StarStar:StarStar:ps) = f (parts . ([]:)) (StarStar:ps)
@@ -98,7 +99,7 @@ step1 (pat, val) = f id pat
         f parts [StarStar] = g []
             where
                 g rseen = Step
-                    {stepDone = [(parts [mkParts $ reverse rseen], val)]
+                    {stepDone = [(val, parts [mkParts $ reverse rseen])]
                     ,stepNext = Nothing
                     ,stepApply = \s -> g (s:rseen)
                     }
@@ -109,7 +110,7 @@ step1 (pat, val) = f id pat
                 g !nseen rseen = Step
                     {stepDone = case zipWithM match1 rls rseen of
                         _ | nseen < nls -> [] -- fast path
-                        Just xss -> [(parts $ mkParts (reverse $ drop nls rseen) : concat (reverse xss), val)]
+                        Just xss -> [(val, parts $ mkParts (reverse $ drop nls rseen) : concat (reverse xss))]
                         Nothing -> []
                     ,stepNext = Nothing
                     ,stepApply = \s -> g (nseen+1) (s:rseen)

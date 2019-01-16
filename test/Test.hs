@@ -1,4 +1,4 @@
-{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE RecordWildCards, TupleSections #-}
 
 module Main(main) where
 
@@ -59,13 +59,15 @@ main = do
 
 testProperties :: [String] -> IO ()
 testProperties xs = do
-    forM_ xs $ \x -> forM_ xs $ \y -> prop x y
+    resOne <- fmap (catMaybes . concat) $ forM (zipFrom 1 xs) $ \(ix,x) -> forM (zipFrom 1 xs) $ \(iy,y) -> fmap (ix,iy,) <$> prop x y
+    let resMany = matchMany (zipFrom 1 xs) (zipFrom 1 xs)
+    T.assertBool (sort resOne == sort resMany) "matchMany" []
     putStrLn $ "Passed " ++ show (length xs ^ 2) ++ " properties on specific cases"
     Success{} <- quickCheckWithResult stdArgs{maxSuccess=10000} $ \(ArbPattern p) (ArbPath x) ->
         (if p ?== x then label "match" else property) $ unsafePerformIO $ prop p x >> return True
     return ()
     where
-        prop :: FilePattern -> FilePath -> IO ()
+        prop :: FilePattern -> FilePath -> IO (Maybe [String])
         prop pat file = do
             let ans = match pat file
             let fields = ["Pattern" T.#= pat, "File" T.#= file, "Match" T.#= ans]
@@ -76,3 +78,4 @@ testProperties xs = do
             let norm = (\x -> if null x then [""] else x) . filter (/= ".") . split isPathSeparator
             when (isJust ans) $ let res = substitute pat (fromJust $ FilePattern.match pat file) in
                 T.assertBool (norm res == norm file) "substitute" $ fields ++ ["Match" T.#= FilePattern.match pat file, "Got" T.#= res, "Input (norm)" T.#= norm file, "Got (norm)" T.#= norm res]
+            return ans

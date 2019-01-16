@@ -89,7 +89,9 @@ step1 (val, pat) = f [] pat id
 
 type Parts = [String] -> [String]
 
--- given the prefix of the parts (as a difference list), and the rest of the pattern, calc the Step
+-- Given a prefix of the pattern, if you can deal with it, return
+-- the rest of the pattern in the prefix you didn't match, and something that given
+-- a matcher for the rest of the pattern, returns a matcher for the whole pattern.
 unroll :: a -> [Pat] -> Maybe ([Pat], (Parts -> Step a) -> Parts -> Step a)
 -- normal path, dispatch on what you find next
 unroll val [End] = Just ([], \_ parts -> mempty{stepDone = [(val, parts [])]})

@@ -1,4 +1,4 @@
-{-# LANGUAGE ViewPatterns, DeriveFunctor, BangPatterns, ScopedTypeVariables #-}
+{-# LANGUAGE ViewPatterns, DeriveFunctor, BangPatterns, RecordWildCards #-}
 
 -- | Applying a set of paths vs a set of patterns efficiently
 module System.FilePattern.Step(
@@ -6,6 +6,7 @@ module System.FilePattern.Step(
     ) where
 
 import System.FilePattern.Core
+import System.FilePattern.Tree
 import System.FilePattern.Wildcard
 
 import Control.Monad.Extra
@@ -56,11 +57,14 @@ fastFoldMap f = mconcat . map f -- important: use the fast mconcat
 -- Invariant: No empty Lits
 data Pat = Lits [Wildcard String]
          | StarStar
+         | End
+           deriving (Show,Eq,Ord)
 
 toPat :: Pattern -> [Pat]
 toPat (Pattern (Literal xs)) = [Lits xs]
 toPat (Pattern (Wildcard pre mid post)) = intercalate [StarStar] $ map lit $ pre : mid ++ [post]
     where lit xs = [Lits xs | xs /= []]
+
 
 -- | Efficient matching of a set of 'FilePattern's against a set of 'FilePath's.
 --   First call 'step' passing in all the 'FilePattern's, with a tag for each one.
@@ -69,22 +73,44 @@ toPat (Pattern (Wildcard pre mid post)) = intercalate [StarStar] $ map lit $ pre
 --   Useful for efficient bulk searching, particularly directory scanning, where you can
 --   avoid descending into directories which cannot match.
 step :: [(a, FilePattern)] -> Step a
-step = fastFoldMap (step1 . second (toPat . parsePattern))
+step = restore . ($ id) . f [] . makeTree . map (second $ toPat . parsePattern)
+    where
+        f :: [Pat] -> Tree Pat a -> (Parts -> Step [a])
+        f seen (Tree ends nxts) = \parts -> cheapConcat $ map ($ parts) $ sEnds ++ sNxts
+            where
+                sEnds = case unroll ends (seen ++ [End]) of
+                    _ | null ends -> []
+                    Just ([], c) -> [c (error "step invariant violated (1)")]
+                    _ -> error $ "step invariant violated (2), " ++ show seen
+
+                sNxts = flip map nxts $ \(p,ps) ->
+                    let seen2 = seen ++ [p] in
+                    case unroll (error "step invariant violated (3)") seen2 of
+                        Nothing -> f seen2 ps
+                        Just (nxt, c) -> c (f [] $ retree nxt ps)
+
+        retree [] t = t
+        retree (p:ps) t = Tree [] [(p, retree ps t)]
+
+        cheapConcat :: [Step a] -> Step a
+        cheapConcat [] = mempty
+        cheapConcat [x] = x
+        cheapConcat xs = Step
+            {stepDone = concatMap stepDone xs
+            ,stepNext = concatMapM stepNext xs
+            ,stepApply = \x -> cheapConcat $ map (`stepApply` x) xs
+            }
+
+        restore :: Step [a] -> Step a -- and restore the stepNext invariant
+        restore Step{..} = Step
+            {stepDone = [(a, b) | (as,b) <- stepDone, a <- as]
+            ,stepNext = fmap nubOrd stepNext
+            ,stepApply = restore . stepApply
+            }
+
 
 match1 :: Wildcard String -> String -> Maybe [String]
 match1 w x = rights <$> wildcardMatch equals w x
-
-step1 :: forall a . (a, [Pat]) -> Step a
-step1 (val, pat) = f [] pat id
-    where
-        f :: [Pat] -> [Pat] -> (Parts -> Step a)
-        f seen [] = case unroll val (seen ++ [End]) of
-            Just ([], f) -> f (error "step invariant violated (1)")
-            _ -> error "step invariant violated (2)"
-        f seen (p:ps) = case unroll val seen2 of
-            Nothing -> f seen2 ps
-            Just (nxt, c) -> c (f [] (nxt++ps))
-            where seen2 = seen ++ [p]
 
 
 type Parts = [String] -> [String]

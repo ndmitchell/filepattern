@@ -75,28 +75,28 @@ match1 :: Wildcard String -> String -> Maybe [String]
 match1 w x = rights <$> wildcardMatch equals w x
 
 step1 :: forall a . (a, [Pat]) -> Step a
-step1 (val, pat) = f id pat
+step1 (val, pat) = f pat id
     where
         -- given the prefix of the parts (as a difference list), and the rest of the pattern, calc the Step
-        f :: ([String] -> [String]) -> [Pat] -> Step a
+        f :: [Pat] -> ([String] -> [String]) -> Step a
 
         -- normal path, dispatch on what you find next
-        f parts [] = mempty{stepDone = [(val, parts [])]}
+        f [] parts = mempty{stepDone = [(val, parts [])]}
 
         -- two stars in a row, the first will match nothing, the second everything
-        f parts (StarStar:StarStar:ps) = f (parts . ([]:)) (StarStar:ps)
+        f (StarStar:StarStar:ps) parts = f  (StarStar:ps) (parts . ([]:))
 
         -- if you have literals next, match them
-        f parts (Lits (l:ls):ps) = Step
+        f (Lits (l:ls):ps) parts = Step
             {stepDone = []
             ,stepNext = case l of Literal v -> Just [v]; Wildcard{} -> Nothing
             ,stepApply = \s -> case match1 l s of
-                Just xs -> f (parts . (xs++)) $ [Lits ls | ls /= []] ++ ps
+                Just xs -> f ([Lits ls | ls /= []] ++ ps) (parts . (xs++))
                 Nothing -> mempty
             }
 
         -- if anything else is allowed, just quickly allow it
-        f parts [StarStar] = g []
+        f [StarStar] parts = g []
             where
                 g rseen = Step
                     {stepDone = [(val, parts [mkParts $ reverse rseen])]
@@ -105,7 +105,7 @@ step1 (val, pat) = f id pat
                     }
 
         -- if you have a specific tail prefix, find it
-        f parts [StarStar, Lits (reverse &&& length -> (rls,nls))] = g 0 []
+        f [StarStar, Lits (reverse &&& length -> (rls,nls))] parts = g 0 []
             where
                 g !nseen rseen = Step
                     {stepDone = case zipWithM match1 rls rseen of
@@ -117,18 +117,18 @@ step1 (val, pat) = f id pat
                     }
 
         -- we know the next literal, and it doesn't have any constraints immediately after
-        f parts (StarStar:Lits [l]:StarStar:ps) = g []
+        f (StarStar:Lits [l]:StarStar:ps) parts = g []
             where
                 g rseen = Step
                     {stepDone = []
                     ,stepNext = Nothing
                     ,stepApply = \s -> case match1 l s of
-                        Just xs -> f (parts . (++) (mkParts (reverse rseen) : xs)) (StarStar:ps)
+                        Just xs -> f (StarStar:ps) (parts . (++) (mkParts (reverse rseen) : xs))
                         Nothing -> g (s:rseen)
                     }
 
         -- the hard case, a floating substring, accumulate at least N, then star testing in reverse
-        f parts (StarStar:Lits (reverse &&& length -> (rls,nls)):StarStar:ps) = g 0 []
+        f (StarStar:Lits (reverse &&& length -> (rls,nls)):StarStar:ps) parts = g 0 []
             where
                 g !nseen rseen = Step
                     {stepDone = []
@@ -136,5 +136,5 @@ step1 (val, pat) = f id pat
                     ,stepApply = \s -> case zipWithM match1 rls (s:rseen) of
                         _ | nseen+1 < nls -> g (nseen+1) (s:rseen) -- not enough accumulated yet
                         Nothing -> g (nseen+1) (s:rseen)
-                        Just xss -> f (parts . (++) (mkParts (reverse $ drop nls $ s:rseen) : concat (reverse xss))) (StarStar:ps)
+                        Just xss -> f (StarStar:ps) (parts . (++) (mkParts (reverse $ drop nls $ s:rseen) : concat (reverse xss)))
                     }

@@ -75,70 +75,79 @@ match1 :: Wildcard String -> String -> Maybe [String]
 match1 w x = rights <$> wildcardMatch equals w x
 
 step1 :: forall a . (a, [Pat]) -> Step a
-step1 (val, pat) = f pat id
+step1 (val, pat) = f [] pat id
     where
-        -- given the prefix of the parts (as a difference list), and the rest of the pattern, calc the Step
-        f :: [Pat] -> ([String] -> [String]) -> Step a
+        f :: [Pat] -> [Pat] -> (Parts -> Step a)
+        f seen [] = case unroll val (seen ++ [End]) of
+            Just ([], f) -> f (error "step invariant violated (1)")
+            _ -> error "step invariant violated (2)"
+        f seen (p:ps) = case unroll val seen2 of
+            Nothing -> f seen2 ps
+            Just (nxt, c) -> c (f [] (nxt++ps))
+            where seen2 = seen ++ [p]
 
-        -- normal path, dispatch on what you find next
-        f [] = \parts -> mempty{stepDone = [(val, parts [])]}
 
-        -- two stars in a row, the first will match nothing, the second everything
-        f (StarStar:StarStar:ps) = \parts -> cont (parts . ([]:))
-            where cont = f (StarStar:ps)
+type Parts = [String] -> [String]
 
-        -- if you have literals next, match them
-        f (Lits (l:ls):ps) = \parts -> Step
-            {stepDone = []
-            ,stepNext = case l of Literal v -> Just [v]; Wildcard{} -> Nothing
-            ,stepApply = \s -> case match1 l s of
-                Just xs -> cont (parts . (xs++))
-                Nothing -> mempty
+-- given the prefix of the parts (as a difference list), and the rest of the pattern, calc the Step
+unroll :: a -> [Pat] -> Maybe ([Pat], (Parts -> Step a) -> Parts -> Step a)
+-- normal path, dispatch on what you find next
+unroll val [End] = Just ([], \_ parts -> mempty{stepDone = [(val, parts [])]})
+
+-- two stars in a row, the first will match nothing, the second everything
+unroll val [StarStar,StarStar] = Just ([StarStar], \cont parts -> cont (parts . ([]:)))
+
+-- if you have literals next, match them
+unroll val [Lits (l:ls)] = Just ([Lits ls | ls /= []], \cont parts -> Step
+    {stepDone = []
+    ,stepNext = case l of Literal v -> Just [v]; Wildcard{} -> Nothing
+    ,stepApply = \s -> case match1 l s of
+        Just xs -> cont (parts . (xs++))
+        Nothing -> mempty
+    })
+
+-- if anything else is allowed, just quickly allow it
+unroll val [StarStar,End] = Just ([], \_ parts -> g parts [])
+    where
+        g parts rseen = Step
+            {stepDone = [(val, parts [mkParts $ reverse rseen])]
+            ,stepNext = Nothing
+            ,stepApply = \s -> g parts (s:rseen)
             }
-            where cont = f ([Lits ls | ls /= []] ++ ps)
 
-        -- if anything else is allowed, just quickly allow it
-        f [StarStar] = \parts -> g parts []
-            where
-                g parts rseen = Step
-                    {stepDone = [(val, parts [mkParts $ reverse rseen])]
-                    ,stepNext = Nothing
-                    ,stepApply = \s -> g parts (s:rseen)
-                    }
+-- if you have a specific tail prefix, find it
+unroll val [StarStar,Lits (reverse &&& length -> (rls,nls)),End] = Just ([], \_ parts -> g parts 0 [])
+    where
+        g parts !nseen rseen = Step
+            {stepDone = case zipWithM match1 rls rseen of
+                _ | nseen < nls -> [] -- fast path
+                Just xss -> [(val, parts $ mkParts (reverse $ drop nls rseen) : concat (reverse xss))]
+                Nothing -> []
+            ,stepNext = Nothing
+            ,stepApply = \s -> g parts (nseen+1) (s:rseen)
+            }
 
-        -- if you have a specific tail prefix, find it
-        f [StarStar, Lits (reverse &&& length -> (rls,nls))] = \parts -> g parts 0 []
-            where
-                g parts !nseen rseen = Step
-                    {stepDone = case zipWithM match1 rls rseen of
-                        _ | nseen < nls -> [] -- fast path
-                        Just xss -> [(val, parts $ mkParts (reverse $ drop nls rseen) : concat (reverse xss))]
-                        Nothing -> []
-                    ,stepNext = Nothing
-                    ,stepApply = \s -> g parts (nseen+1) (s:rseen)
-                    }
+-- we know the next literal, and it doesn't have any constraints immediately after
+unroll val [StarStar,Lits [l],StarStar] = Just ([StarStar], \cont parts -> g cont parts [])
+    where
+        g cont parts rseen = Step
+            {stepDone = []
+            ,stepNext = Nothing
+            ,stepApply = \s -> case match1 l s of
+                Just xs -> cont (parts . (++) (mkParts (reverse rseen) : xs))
+                Nothing -> g cont parts (s:rseen)
+            }
 
-        -- we know the next literal, and it doesn't have any constraints immediately after
-        f (StarStar:Lits [l]:StarStar:ps) = \parts -> g parts []
-            where
-                cont = f (StarStar:ps)
-                g parts rseen = Step
-                    {stepDone = []
-                    ,stepNext = Nothing
-                    ,stepApply = \s -> case match1 l s of
-                        Just xs -> cont (parts . (++) (mkParts (reverse rseen) : xs))
-                        Nothing -> g parts (s:rseen)
-                    }
+-- the hard case, a floating substring, accumulate at least N, then star testing in reverse
+unroll val [StarStar,Lits (reverse &&& length -> (rls,nls)),StarStar] = Just ([StarStar], \cont parts -> g cont parts 0 [])
+    where
+        g cont parts !nseen rseen = Step
+            {stepDone = []
+            ,stepNext = Nothing
+            ,stepApply = \s -> case zipWithM match1 rls (s:rseen) of
+                _ | nseen+1 < nls -> g cont parts (nseen+1) (s:rseen) -- not enough accumulated yet
+                Nothing -> g cont parts (nseen+1) (s:rseen)
+                Just xss -> cont (parts . (++) (mkParts (reverse $ drop nls $ s:rseen) : concat (reverse xss)))
+            }
 
-        -- the hard case, a floating substring, accumulate at least N, then star testing in reverse
-        f (StarStar:Lits (reverse &&& length -> (rls,nls)):StarStar:ps) = \parts -> g parts 0 []
-            where
-                cont = f (StarStar:ps)
-                g parts !nseen rseen = Step
-                    {stepDone = []
-                    ,stepNext = Nothing
-                    ,stepApply = \s -> case zipWithM match1 rls (s:rseen) of
-                        _ | nseen+1 < nls -> g parts (nseen+1) (s:rseen) -- not enough accumulated yet
-                        Nothing -> g parts (nseen+1) (s:rseen)
-                        Just xss -> cont (parts . (++) (mkParts (reverse $ drop nls $ s:rseen) : concat (reverse xss)))
-                    }
+unroll _ _ = Nothing

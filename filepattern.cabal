@@ -38,6 +38,7 @@ library
         System.FilePattern.ListBy
         System.FilePattern.Monads
         System.FilePattern.Step
+        System.FilePattern.Tree
         System.FilePattern.Wildcard
 
 

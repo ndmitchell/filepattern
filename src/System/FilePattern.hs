@@ -15,6 +15,7 @@ import Control.Exception.Extra
 import Data.Maybe
 import Data.Tuple.Extra
 import Data.List.Extra
+import System.FilePattern.Tree
 import System.FilePattern.Core(FilePattern, parsePattern, parsePath, renderPath)
 import qualified System.FilePattern.Core as Core
 import System.FilePattern.Step
@@ -99,20 +100,8 @@ substitute w xs = maybe (error msg) renderPath $ Core.substitute (parsePattern w
 --
 -- > matchMany [(a, pat)] [(b, path)] == maybeToList (map (a,b,) (match pat path))
 matchMany :: [(a, FilePattern)] -> [(b, FilePath)] -> [(a, b, [String])]
-matchMany pats = f (step pats) . makeTree
+matchMany pats = f (step pats) . makeTree . map (second $ (\(Core.Path x) -> x) . parsePath)
     where
         f Step{..} (Tree bs xs) = concat $
             [(a, b, ps) | (a, ps) <- stepDone, b <- bs] :
             [f (stepApply x) t | (x, t) <- xs, maybe True (x `elem`) stepNext]
-
-
-data Tree a = Tree [a] [(String, Tree a)]
-
-makeTree :: forall a . [(a, FilePath)] -> Tree a
-makeTree = f . sortOn snd . map (second $ (\(Core.Path x) -> x) . parsePath)
-    where
-        f :: [(a, [String])] -> Tree a
-        f xs = Tree (map fst empty) [(fst $ head gs, f $ map snd gs) | gs <- groups]
-            where
-                (empty, nonEmpty) = span (null . snd) xs
-                groups = groupOn fst [(x, (a,xs)) | (a,x:xs) <- nonEmpty]

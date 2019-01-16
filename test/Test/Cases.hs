@@ -7,7 +7,7 @@ import System.Info.Extra
 
 
 testCases :: IO ()
-testCases = testMatch >> testArity >> testSubstitute
+testCases = testMatch >> testArity >> testSubstitute >> testStepNext
 
 
 testArity :: IO ()
@@ -141,28 +141,16 @@ testMatch = do
     matchY "**/a/b/**" "a/a/a/a/b/c" ["a/a/a","c"]
 
 
-{-
-testWalk :: Switch -> IO ()
-testWalk Switch{..} = do
-    let shw (a, b) = "(" ++ show a ++ "," ++ maybe "Nothing" ((++) "Just " . showWalk) b ++ ")"
-    let both p w = assertBool (shw res == shw w) "walk" ["Pattern" #= p, "Expected" #= shw w, "Got" #= shw res]
-            where res = walk p
-    let walk_ = Walk undefined
-
-    both ["*.xml"] (False, Just walk_)
-    both ["//*.xml"] (False, Just $ WalkTo ([], [("",walk_)]))
-    both ["**/*.xml"] (False, Just walk_)
-    both ["foo//*.xml"] (False, Just $ WalkTo ([], [("foo",walk_)]))
-    both ["foo/**/*.xml"] (False, Just $ WalkTo ([], [("foo",walk_)]))
-    both ["foo/bar/*.xml"] (False, Just $ WalkTo ([], [("foo",WalkTo ([],[("bar",walk_)]))]))
-    both ["a","b/c"] (False, Just $ WalkTo (["a"],[("b",WalkTo (["c"],[]))]))
-    let (False, Just (Walk f)) = walk ["*/bar/*.xml"]
-        shw2 (b, mw) = (b, maybe "" showWalk mw)
-    assertBool (shw2 (f "foo") == shw2 (False, Just $ WalkTo ([],[("bar",walk_)]))) "walk inner" []
-    both ["bar/*.xml","baz//*.c"] (False, Just $ WalkTo ([],[("bar",walk_),("baz",walk_)]))
-    both ["bar/*.xml","baz/**/*.c"] (False, Just $ WalkTo ([],[("bar",walk_),("baz",walk_)]))
-    both [] (False, Nothing)
-    both [""] (True, Just $ WalkTo ([""], []))
-    both ["//"] (False, Just $ WalkTo ([], [("",WalkTo ([""],[]))]))
-    both ["**"] (True, Just walk_)
--}
+testStepNext :: IO ()
+testStepNext = do
+    stepNext ["*.xml"] [] Nothing
+    stepNext ["*.xml"] ["foo"] $ Just []
+    stepNext ["**/*.xml"] [] Nothing
+    stepNext ["**/*.xml"] ["foo"] Nothing
+    stepNext ["foo/bar/*.xml"] [] $ Just ["foo"]
+    stepNext ["foo/bar/*.xml"] ["oof"] $ Just []
+    stepNext ["foo/bar/*.xml"] ["foo"] $ Just ["bar"]
+    stepNext ["a","b/c"] [] $ Just ["a","b"]
+    stepNext ["a","b/c"] ["b"] $ Just ["c"]
+    stepNext ["*/x"] [] Nothing
+    stepNext ["*/x"] ["foo"] $ Just ["x"]

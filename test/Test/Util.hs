@@ -1,10 +1,11 @@
-{-# LANGUAGE RecordWildCards, ConstraintKinds #-}
+{-# LANGUAGE RecordWildCards, ConstraintKinds, TupleSections #-}
 
 module Test.Util(
     assertBool, (#=),
     matchY, matchN,
     arity,
     substitute, substituteErr,
+    stepNext,
     TestData(..), unsafeTestData,
     ) where
 
@@ -89,3 +90,13 @@ substituteErr :: Partial => FilePattern -> [String] -> [String] -> IO ()
 substituteErr pat parts want = do
     addTestData [pat] []
     assertException (return $ FP.substitute pat parts) want "substitute" ["Pattern" #= pat, "Parts" #= parts]
+
+
+stepNext :: [FilePattern] -> [String] -> Maybe [String] -> IO ()
+stepNext pat path want = do
+    addTestData pat []
+    let got = f (FP.step $ map ((),) pat) path
+    assertBool (want == got) "stepNext" ["Pattern" #= pat, "Path" #= path, "Expected" #= want, "Got" #= got]
+    where
+        f FP.Step{..} [] = stepNext
+        f FP.Step{..} (x:xs) = f (stepApply x) xs

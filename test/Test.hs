@@ -25,7 +25,7 @@ newtype ArbPath    = ArbPath    FilePath    deriving (Show,Eq)
 -- Since / and * are the only "interesting" elements, just add ab to round out the set
 
 instance Arbitrary ArbPattern where
-    arbitrary = fmap ArbPattern $ listOf $ elements "\\/*ab."
+    arbitrary = fmap (ArbPattern . concat) $ listOf $ elements $ "**" : map (:[]) "\\/*ab."
     shrink (ArbPattern x) = map ArbPattern $ shrinkList (\x -> ['/' | x == '\\']) x
 
 instance Arbitrary ArbPath where

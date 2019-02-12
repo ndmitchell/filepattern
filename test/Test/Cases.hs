@@ -143,14 +143,14 @@ testMatch = do
 
 testStepNext :: IO ()
 testStepNext = do
-    stepNext ["*.xml"] [] Nothing
-    stepNext ["*.xml"] ["foo"] $ Just []
-    stepNext ["**/*.xml"] [] Nothing
-    stepNext ["**/*.xml"] ["foo"] Nothing
-    stepNext ["foo/bar/*.xml"] [] $ Just ["foo"]
-    stepNext ["foo/bar/*.xml"] ["oof"] $ Just []
-    stepNext ["foo/bar/*.xml"] ["foo"] $ Just ["bar"]
-    stepNext ["a","b/c"] [] $ Just ["a","b"]
-    stepNext ["a","b/c"] ["b"] $ Just ["c"]
-    stepNext ["*/x"] [] Nothing
-    stepNext ["*/x"] ["foo"] $ Just ["x"]
+    stepNext ["*.xml"] [] StepUnknown
+    stepNext ["*.xml"] ["foo"] $ StepOnly []
+    stepNext ["**/*.xml"] [] StepUnknown
+    stepNext ["**/*.xml"] ["foo"] StepUnknown
+    stepNext ["foo/bar/*.xml"] [] $ StepOnly ["foo"]
+    stepNext ["foo/bar/*.xml"] ["oof"] $ StepOnly []
+    stepNext ["foo/bar/*.xml"] ["foo"] $ StepOnly ["bar"]
+    stepNext ["a","b/c"] [] $ StepOnly ["a","b"]
+    stepNext ["a","b/c"] ["b"] $ StepOnly ["c"]
+    stepNext ["*/x"] [] StepUnknown
+    stepNext ["*/x"] ["foo"] $ StepOnly ["x"]

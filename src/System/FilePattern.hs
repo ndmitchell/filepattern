@@ -8,7 +8,7 @@
 module System.FilePattern(
     FilePattern, (?==), match, substitute, arity,
     -- * Multiple 'FilePattern' and 'FilePath'
-    step, Step(..), matchMany
+    step, Step(..), StepNext(..), matchMany
     ) where
 
 import Control.Exception.Extra
@@ -104,4 +104,4 @@ matchMany pats = f (step pats) . makeTree . map (second $ (\(Core.Path x) -> x) 
     where
         f Step{..} (Tree bs xs) = concat $
             [(a, b, ps) | (a, ps) <- stepDone, b <- bs] :
-            [f (stepApply x) t | (x, t) <- xs, maybe True (x `elem`) stepNext]
+            [f (stepApply x) t | (x, t) <- xs, case stepNext of StepOnly xs -> x `elem` xs; _ -> True]

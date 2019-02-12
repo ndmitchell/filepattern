@@ -7,6 +7,7 @@ module Test.Util(
     substitute, substituteErr,
     stepNext,
     TestData(..), unsafeTestData,
+    FP.StepNext(..)
     ) where
 
 import Control.Exception.Extra
@@ -92,7 +93,7 @@ substituteErr pat parts want = do
     assertException (return $ FP.substitute pat parts) want "substitute" ["Pattern" #= pat, "Parts" #= parts]
 
 
-stepNext :: [FilePattern] -> [String] -> Maybe [String] -> IO ()
+stepNext :: [FilePattern] -> [String] -> FP.StepNext -> IO ()
 stepNext pat path want = do
     addTestData pat []
     let got = f (FP.step $ map ((),) pat) path

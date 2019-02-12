@@ -2,7 +2,7 @@
 
 -- | Applying a set of paths vs a set of patterns efficiently
 module System.FilePattern.Step(
-    step, Step(..)
+    step, Step(..), StepNext(..)
     ) where
 
 import System.FilePattern.Core
@@ -19,12 +19,46 @@ import qualified Data.List.NonEmpty as NE
 import Prelude
 
 
+-- | What we know about the next step values.
+data StepNext
+    =
+      -- | All components not listed will result in dull 'Step' values from 'stepApply',
+      --   with 'stepNext' being @'StepOnly' []@ and 'stepDone' being @[]@. The field is a set - their order
+      --   is irrelevant but there will be no duplicates in values arising from 'step'.
+      StepOnly [String]
+    | -- | We have no additional information about the output from 'stepApply'.
+      StepUnknown
+      deriving (Eq,Ord,Show)
+
+
+mergeStepNext :: [StepNext] -> StepNext
+mergeStepNext = f id
+    where
+        f rest [] = StepOnly $ rest []
+        f rest (StepUnknown:_) = StepUnknown
+        f rest (StepOnly x:xs) = f (rest . (x ++)) xs
+
+normaliseStepNext :: StepNext -> StepNext
+normaliseStepNext (StepOnly xs) = StepOnly $ nubOrd xs
+normaliseStepNext x = x
+
+
+instance Semigroup StepNext where
+    a <> b = sconcat $ NE.fromList [a,b]
+    sconcat = normaliseStepNext . mergeStepNext . NE.toList
+
+instance Monoid StepNext where
+    mempty = StepOnly []
+    mappend = (<>)
+    mconcat = maybe mempty sconcat . NE.nonEmpty -- important: use the fast sconcat
+
+
 -- | The result of 'step', used to process successive path components of a set of 'FilePath's.
 data Step a = Step
     {stepDone :: [(a, [String])]
         -- ^ The files that match at this step. Includes the list that would have been produced by 'System.FilePattern.match',
         --   along with the values passed to 'step'. These results are not necessarily in order.
-    ,stepNext :: Maybe [String]
+    ,stepNext :: StepNext
         -- ^ If 'Just' then all non-included components will result in dull 'Step' values from 'stepApply',
         --   with 'stepNext' being @'Just' []@ and 'stepDone' being @[]@. The values in 'stepNext' form a set - their order
         --   is irrelevant but there will be no duplicates in values arising from 'step'.
@@ -33,6 +67,14 @@ data Step a = Step
     }
     deriving Functor
 
+mergeStep :: (StepNext -> StepNext) -> [Step a] -> Step a
+mergeStep f [] = mempty
+mergeStep f [x] = x
+mergeStep f xs = Step
+    {stepDone = concatMap stepDone xs
+    ,stepNext = f $ mergeStepNext $ map stepNext xs
+    ,stepApply = \x -> mergeStep f $ map (`stepApply` x) xs
+    }
 
 instance Semigroup (Step a) where
     a <> b = sconcat $ NE.fromList [a,b]
@@ -40,12 +82,12 @@ instance Semigroup (Step a) where
         | [s] <- ss = s
         | otherwise = Step
             {stepDone = concatMap stepDone ss
-            ,stepNext = nubOrd <$> concatMapM stepNext ss
+            ,stepNext = mconcat $ map stepNext ss
             ,stepApply = \x -> fastFoldMap (`stepApply` x) ss
             }
 
 instance Monoid (Step a) where
-    mempty = Step [] (Just []) $ const mempty
+    mempty = Step [] mempty $ const mempty
     mappend = (<>)
     mconcat = maybe mempty sconcat . NE.nonEmpty -- important: use the fast sconcat
 
@@ -76,7 +118,7 @@ step :: [(a, FilePattern)] -> Step a
 step = restore . ($ id) . f [] . makeTree . map (second $ toPat . parsePattern)
     where
         f :: [Pat] -> Tree Pat a -> (Parts -> Step [a])
-        f seen (Tree ends nxts) = \parts -> cheapConcat $ map ($ parts) $ sEnds ++ sNxts
+        f seen (Tree ends nxts) = \parts -> mergeStep id $ map ($ parts) $ sEnds ++ sNxts
             where
                 sEnds = case unroll ends (seen ++ [End]) of
                     _ | null ends -> []
@@ -92,21 +134,13 @@ step = restore . ($ id) . f [] . makeTree . map (second $ toPat . parsePattern)
         retree [] t = t
         retree (p:ps) t = Tree [] [(p, retree ps t)]
 
-        cheapConcat :: [Step a] -> Step a
-        cheapConcat [] = mempty
-        cheapConcat [x] = x
-        cheapConcat xs = Step
-            {stepDone = concatMap stepDone xs
-            ,stepNext = concatMapM stepNext xs
-            ,stepApply = \x -> cheapConcat $ map (`stepApply` x) xs
-            }
-
         restore :: Step [a] -> Step a -- and restore the stepNext invariant
         restore Step{..} = Step
             {stepDone = [(a, b) | (as,b) <- stepDone, a <- as]
-            ,stepNext = fmap nubOrd stepNext
+            ,stepNext = normaliseStepNext stepNext
             ,stepApply = restore . stepApply
             }
+
 
 
 match1 :: Wildcard String -> String -> Maybe [String]
@@ -128,7 +162,7 @@ unroll val [StarStar,StarStar] = Just ([StarStar], \cont parts -> cont (parts . 
 -- if you have literals next, match them
 unroll val [Lits (l:ls)] = Just ([Lits ls | ls /= []], \cont parts -> Step
     {stepDone = []
-    ,stepNext = case l of Literal v -> Just [v]; Wildcard{} -> Nothing
+    ,stepNext = case l of Literal v -> StepOnly [v]; Wildcard{} -> StepUnknown
     ,stepApply = \s -> case match1 l s of
         Just xs -> cont (parts . (xs++))
         Nothing -> mempty
@@ -139,7 +173,7 @@ unroll val [StarStar,End] = Just ([], \_ parts -> g parts [])
     where
         g parts rseen = Step
             {stepDone = [(val, parts [mkParts $ reverse rseen])]
-            ,stepNext = Nothing
+            ,stepNext = StepUnknown
             ,stepApply = \s -> g parts (s:rseen)
             }
 
@@ -151,7 +185,7 @@ unroll val [StarStar,Lits (reverse &&& length -> (rls,nls)),End] = Just ([], \_ 
                 _ | nseen < nls -> [] -- fast path
                 Just xss -> [(val, parts $ mkParts (reverse $ drop nls rseen) : concat (reverse xss))]
                 Nothing -> []
-            ,stepNext = Nothing
+            ,stepNext = StepUnknown
             ,stepApply = \s -> g parts (nseen+1) (s:rseen)
             }
 
@@ -160,7 +194,7 @@ unroll val [StarStar,Lits [l],StarStar] = Just ([StarStar], \cont parts -> g con
     where
         g cont parts rseen = Step
             {stepDone = []
-            ,stepNext = Nothing
+            ,stepNext = StepUnknown
             ,stepApply = \s -> case match1 l s of
                 Just xs -> cont (parts . (++) (mkParts (reverse rseen) : xs))
                 Nothing -> g cont parts (s:rseen)
@@ -171,7 +205,7 @@ unroll val [StarStar,Lits (reverse &&& length -> (rls,nls)),StarStar] = Just ([S
     where
         g cont parts !nseen rseen = Step
             {stepDone = []
-            ,stepNext = Nothing
+            ,stepNext = StepUnknown
             ,stepApply = \s -> case zipWithM match1 rls (s:rseen) of
                 _ | nseen+1 < nls -> g cont parts (nseen+1) (s:rseen) -- not enough accumulated yet
                 Nothing -> g cont parts (nseen+1) (s:rseen)

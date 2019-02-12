@@ -103,7 +103,7 @@ substitute w xs = maybe (error msg) renderPath $ Core.substitute (parsePattern w
               " namely " ++ show xs ++ "."
 
 
--- | Match many 'FilePattern's against many 'FilePath's in a single operation.
+-- | Efficiently match many 'FilePattern's against many 'FilePath's in a single operation.
 --   Note that the returned matches are not guaranteed to be in any particular order.
 --
 -- > matchMany [(a, pat)] [(b, path)] == maybeToList (map (a,b,) (match pat path))

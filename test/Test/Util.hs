@@ -81,6 +81,7 @@ arity pat want = do
     let got = FP.arity pat
     assertBool (want == got) "arity" ["Pattern" #= pat, "Expected" #= want, "Got" #= got]
 
+
 substitute :: Partial => FilePattern -> [String] -> FilePath -> IO ()
 substitute pat parts want = do
     addTestData [pat] [want]

@@ -1,15 +1,15 @@
 {-# LANGUAGE ConstraintKinds, RecordWildCards, ScopedTypeVariables #-}
 
 -- | A module for matching files using patterns such as @\"src\/**\/*.png\"@ for all @.png@ files
---  recursively under the @src@ directory. See 'System.FilePattern.?==' for the semantics of
---  'System.FilePattern.FilePattern' values. Features:
+--  recursively under the @src@ directory. See '?==' for the semantics of
+--  'FilePattern' values. Features:
 --
 --  * All matching is /O(n)/.
 --
---  * Use 'System.FilePattern.match' and 'System.FilePattern.substitute' to extract suitable
+--  * Use 'match' and 'substitute' to extract suitable
 --  strings from the @*@ and @**@ matches, and substitute them back into other patterns.
 --
---  * Use 'System.FilePattern.step' and 'System.FilePattern.matchMany' to perform bulk matching
+--  * Use 'step' and 'matchMany' to perform bulk matching
 --  of many patterns against many paths simultaneously.
 --
 --  * Use "System.FilePattern.Directory" to perform optimised directory traverals using patterns.

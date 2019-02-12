@@ -27,12 +27,14 @@ library
     hs-source-dirs: src
     build-depends:
         base == 4.*,
+        directory,
         extra >= 1.6.2,
         filepath
     if impl(ghc < 8.0)
         build-depends: semigroups >= 0.18
     exposed-modules:
         System.FilePattern
+        System.FilePattern.Directory
     other-modules:
         System.FilePattern.Core
         System.FilePattern.ListBy
@@ -49,6 +51,7 @@ test-suite filepattern-test
     hs-source-dirs: test
     build-depends:
         base == 4.*,
+        directory,
         extra,
         filepattern,
         filepath,

@@ -7,7 +7,7 @@ import System.Info.Extra
 
 
 testCases :: IO ()
-testCases = testMatch >> testArity >> testSubstitute >> testStepNext
+testCases = testMatch >> testArity >> testSubstitute >> testStepNext >> testDirectory
 
 
 testArity :: IO ()
@@ -155,3 +155,13 @@ testStepNext = do
     stepNext ["*/x"] [] StepUnknown
     stepNext ["*/x"] ["foo"] $ StepOnly ["x"]
     stepNext ["*/**"] ["bar"] StepEverything
+
+
+testDirectory :: IO ()
+testDirectory = do
+    getDirectory ["**/*.c"] [] ["baz/test.c","baz/zoo.c","foo/bar.c","foo/foo/foo.c","zoo.c"] ["extra/test.h","foo.c/bob.h"]
+    -- Currently no way to test what it can access, sadly
+    -- should only look inside: foo
+    getDirectory ["foo/*.c"] [] ["foo/bar.c","foo/baz.c"] ["foo.c","foo/bar/baz.c","test/foo.c"]
+    -- should only look inside: . foo zoo
+    getDirectory ["foo/*.c","**/*.h"] [".git/**","**/no.*"] ["foo/bar.c","foo/baz.h","zoo/test.h"] ["foo/no.c",".git/foo.h","zoo/test.c"]

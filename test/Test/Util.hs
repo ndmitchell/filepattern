@@ -6,6 +6,7 @@ module Test.Util(
     arity,
     substitute, substituteErr,
     stepNext,
+    getDirectory,
     TestData(..), unsafeTestData,
     FP.StepNext(..)
     ) where
@@ -14,8 +15,12 @@ import Control.Exception.Extra
 import Control.Monad.Extra
 import Data.List.Extra
 import Data.IORef.Extra
+import System.Directory
+import System.FilePath
 import System.FilePattern(FilePattern)
 import qualified System.FilePattern as FP
+import qualified System.FilePattern.Directory as FP
+import System.IO.Extra
 import System.IO.Unsafe
 
 
@@ -102,3 +107,13 @@ stepNext pat path want = do
     where
         f FP.Step{..} [] = stepNext
         f FP.Step{..} (x:xs) = f (stepApply x) xs
+
+
+getDirectory :: [FilePattern] -> [FilePattern] -> [FilePath] -> [FilePath] -> IO ()
+getDirectory match ignore want avoid =
+    withTempDir $ \root -> do
+        forM_ (want ++ avoid) $ \x -> do
+            createDirectoryIfMissing True $ root </> takeDirectory x
+            writeFile (root </> x) ""
+        got <- FP.getDirectoryFilesIgnore root match ignore
+        assertBool (want == got) "getDirectory" ["Root" #= root, "Match" #= match, "Ignore" #= ignore, "Want" #= want, "Got" #= got, "Avoid" #= avoid]

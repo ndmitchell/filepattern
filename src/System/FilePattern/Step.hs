@@ -1,8 +1,8 @@
-{-# LANGUAGE ViewPatterns, DeriveFunctor, BangPatterns, RecordWildCards #-}
+{-# LANGUAGE ViewPatterns, DeriveFunctor, BangPatterns, TupleSections, RecordWildCards #-}
 
 -- | Applying a set of paths vs a set of patterns efficiently
 module System.FilePattern.Step(
-    step, Step(..), StepNext(..)
+    step, step_, Step(..), StepNext(..)
     ) where
 
 import System.FilePattern.Core
@@ -142,6 +142,9 @@ step = restore . ($ id) . f [] . makeTree . map (second $ toPat . parsePattern)
             ,stepApply = restore . stepApply
             }
 
+-- | Like 'step' but using @()@ as the tag for each 'FilePattern'.
+step_ :: [FilePattern] -> Step ()
+step_ = step . map ((),)
 
 
 match1 :: Wildcard String -> String -> Maybe [String]

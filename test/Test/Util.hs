@@ -96,7 +96,7 @@ substituteErr pat parts want = do
 stepNext :: [FilePattern] -> [String] -> FP.StepNext -> IO ()
 stepNext pat path want = do
     addTestData pat []
-    let got = f (FP.step $ map ((),) pat) path
+    let got = f (FP.step_ pat) path
     assertBool (want == got) "stepNext" ["Pattern" #= pat, "Path" #= path, "Expected" #= want, "Got" #= got]
     where
         f FP.Step{..} [] = stepNext

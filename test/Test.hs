@@ -34,7 +34,7 @@ instance Arbitrary ArbPath where
 
 
 runStepSimple :: FilePattern -> FilePath -> Maybe [String]
-runStepSimple pat path = f (step [((), pat)]) $ split isPathSeparator path
+runStepSimple pat path = f (step_ [pat]) $ split isPathSeparator path
     where
         f Step{..} [] = snd <$> listToMaybe stepDone
         f Step{..} (x:xs) = f (stepApply x) xs

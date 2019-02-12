@@ -8,7 +8,7 @@
 module System.FilePattern(
     FilePattern, (?==), match, substitute, arity,
     -- * Multiple 'FilePattern' and 'FilePath'
-    step, Step(..), StepNext(..), matchMany
+    step, step_, Step(..), StepNext(..), matchMany
     ) where
 
 import Control.Exception.Extra

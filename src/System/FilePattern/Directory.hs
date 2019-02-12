@@ -18,11 +18,13 @@ module System.FilePattern.Directory(
     ) where
 
 import Control.Monad.Extra
+import Data.Functor
 import Data.List
 import System.Directory
 import System.FilePath
 import System.FilePattern.Core
 import System.FilePattern.Step
+import Prelude
 
 
 -- | Get the files below a certain root that match any of the 'FilePattern' values. Only matches

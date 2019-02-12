@@ -1,4 +1,4 @@
-{-# LANGUAGE RecordWildCards, ConstraintKinds, TupleSections #-}
+{-# LANGUAGE RecordWildCards, ConstraintKinds #-}
 
 module Test.Util(
     assertBool, (#=),

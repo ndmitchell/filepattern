@@ -4,3 +4,4 @@
 
 # Warnings currently triggered by the code
 - ignore: {name: "Use lambda-case"} # Not supported by GHC 7.4
+- ignore: {name: "Use null"} # Not sure I like it where it triggers

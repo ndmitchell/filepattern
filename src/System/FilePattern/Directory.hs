@@ -1,4 +1,3 @@
-{-# LANGUAGE TupleSections #-}
 
 -- | Optimised directory traversal using 'FilePattern' values.
 --

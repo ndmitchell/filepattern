@@ -1,5 +1,6 @@
 Changelog for filepattern
 
+    Switch to https://github.com/ndmitchell/filepattern
 0.1, released 2019-02-12
     Substantial (almost total) rewrite
     Remove // patterns

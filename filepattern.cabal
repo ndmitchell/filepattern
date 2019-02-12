@@ -26,7 +26,8 @@ description:
     * Use "System.FilePattern.Directory" to perform optimised directory traverals using patterns.
     .
     Originally taken from the <https://hackage.haskell.org/package/shake Shake library>.
-bug-reports:        https://github.com/eborden/filepattern/issues
+homepage:           https://github.com/ndmitchell/filepattern#readme
+bug-reports:        https://github.com/ndmitchell/filepattern/issues
 tested-with:        GHC==8.6.3, GHC==8.4.4, GHC==8.2.2, GHC==8.0.2, GHC==7.10.3, GHC==7.8.4, GHC==7.6.3, GHC==7.4.2
 extra-doc-files:
     CHANGES.txt
@@ -34,7 +35,7 @@ extra-doc-files:
 
 source-repository head
     type:     git
-    location: https://github.com/eborden/filepattern.git
+    location: https://github.com/ndmitchell/filepattern.git
 
 library
     default-language: Haskell2010

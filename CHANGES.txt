@@ -1,8 +1,5 @@
 Changelog for filepattern
 
-    Change the extracted result for /// in Legacy patterns
-    #2, always ignore . in both FilePattern and FilePath
-    #1, make relative FilePatterns match absolute FilePaths
-    Rename filePattern to match, delete extract
-    Have legacy and non-legacy modules
+    Substantial (almost total) rewrite
+    Remove // patterns
     Split from shake-0.16

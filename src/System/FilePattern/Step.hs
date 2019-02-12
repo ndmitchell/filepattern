@@ -26,6 +26,8 @@ data StepNext
       --   with 'stepNext' being @'StepOnly' []@ and 'stepDone' being @[]@. The field is a set - their order
       --   is irrelevant but there will be no duplicates in values arising from 'step'.
       StepOnly [String]
+    | -- | All calls to 'stepApply' will return 'stepNext' being 'StepEverything' with a non-empty 'stepDone'.
+      StepEverything
     | -- | We have no additional information about the output from 'stepApply'.
       StepUnknown
       deriving (Eq,Ord,Show)
@@ -35,7 +37,8 @@ mergeStepNext :: [StepNext] -> StepNext
 mergeStepNext = f id
     where
         f rest [] = StepOnly $ rest []
-        f rest (StepUnknown:_) = StepUnknown
+        f rest (StepUnknown:xs) = if StepEverything `elem` xs then StepEverything else StepUnknown
+        f rest (StepEverything:xs) = StepEverything
         f rest (StepOnly x:xs) = f (rest . (x ++)) xs
 
 normaliseStepNext :: StepNext -> StepNext
@@ -171,7 +174,7 @@ unroll val [StarStar,End] = Just ([], \_ parts -> g parts [])
     where
         g parts rseen = Step
             {stepDone = [(val, parts [mkParts $ reverse rseen])]
-            ,stepNext = StepUnknown
+            ,stepNext = StepEverything
             ,stepApply = \s -> g parts (s:rseen)
             }
 

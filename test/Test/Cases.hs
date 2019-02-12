@@ -154,3 +154,4 @@ testStepNext = do
     stepNext ["a","b/c"] ["b"] $ StepOnly ["c"]
     stepNext ["*/x"] [] StepUnknown
     stepNext ["*/x"] ["foo"] $ StepOnly ["x"]
+    stepNext ["*/**"] ["bar"] StepEverything

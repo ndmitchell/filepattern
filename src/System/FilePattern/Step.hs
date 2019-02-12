@@ -59,9 +59,7 @@ data Step a = Step
         -- ^ The files that match at this step. Includes the list that would have been produced by 'System.FilePattern.match',
         --   along with the values passed to 'step'. These results are not necessarily in order.
     ,stepNext :: StepNext
-        -- ^ If 'Just' then all non-included components will result in dull 'Step' values from 'stepApply',
-        --   with 'stepNext' being @'Just' []@ and 'stepDone' being @[]@. The values in 'stepNext' form a set - their order
-        --   is irrelevant but there will be no duplicates in values arising from 'step'.
+        -- ^ Information about the results of calling 'stepApply'. See 'StepNext' for details.
     ,stepApply :: String -> Step a
         -- ^ Apply one component from a 'FilePath' to get a new 'Step'.
     }

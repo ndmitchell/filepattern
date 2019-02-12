@@ -11,18 +11,19 @@ copyright:          Neil Mitchell 2011-2019
 synopsis:           File path glob-like matching
 description:
     A library for matching files using patterns such as @\"src\/**\/*.png\"@ for all @.png@ files
-    recursively under the @src@ directory. See 'System.FilePattern.?==' for the semantics of
-    'System.FilePattern.FilePattern' values. Features:
+    recursively under the @src@ directory. Features:
     .
     * All matching is /O(n)/.
     .
-    * Using 'System.FilePattern.match' and 'System.FilePattern.substitute' you can extract suitable
+    * See "System.FilePattern" and 'System.FilePattern.?==' simple matching and semantics.
+    .
+    * Use 'System.FilePattern.match' and 'System.FilePattern.substitute' to extract suitable
     strings from the @*@ and @**@ matches, and substitute them back into other patterns.
     .
-    * Using 'System.FilePattern.step' and 'System.FilePattern.matchMany' you can perform bulk matching
+    * Use 'System.FilePattern.step' and 'System.FilePattern.matchMany' to perform bulk matching
     of many patterns against many paths simultaneously.
     .
-    * Using "System.FilePattern.Directory" you can perform optimised directory traverals using patterns.
+    * Use "System.FilePattern.Directory" to perform optimised directory traverals using patterns.
     .
     Originally taken from the <https://hackage.haskell.org/package/shake Shake library>.
 bug-reports:        https://github.com/eborden/filepattern/issues

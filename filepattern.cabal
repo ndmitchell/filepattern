@@ -13,7 +13,7 @@ description:
     A library for matching files using patterns such as @\"src\/**\/*.png\"@ for all @.png@ files
     recursively under the @src@ directory. Features:
     .
-    * All matching is /O(n)/.
+    * All matching is /O(n)/. Most functions precompute some information given only one argument.
     .
     * See "System.FilePattern" and @?==@ simple matching and semantics.
     .

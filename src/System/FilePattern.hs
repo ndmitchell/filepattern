@@ -4,7 +4,7 @@
 --  recursively under the @src@ directory. See '?==' for the semantics of
 --  'FilePattern' values. Features:
 --
---  * All matching is /O(n)/.
+--  * All matching is /O(n)/. Most functions precompute some information given only one argument.
 --
 --  * Use 'match' and 'substitute' to extract suitable
 --  strings from the @*@ and @**@ matches, and substitute them back into other patterns.

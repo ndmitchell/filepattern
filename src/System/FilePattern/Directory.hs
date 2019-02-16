@@ -1,5 +1,6 @@
 
 -- | Optimised directory traversal using 'FilePattern' values.
+--   All results are guaranteed to be sorted.
 --
 --   /Case Sensitivity/: these traversals are optimised to reduce the number of IO operations
 --   performed. In particular, if the relevant subdirectories can be determined in

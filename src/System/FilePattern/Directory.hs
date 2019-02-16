@@ -12,6 +12,7 @@
 --   If these optimisation differences are absolutely unacceptable use 'getDirectoryFilesIgnoreSlow'.
 --   However, normally these differences are not a problem.
 module System.FilePattern.Directory(
+    FilePattern,
     getDirectoryFiles,
     getDirectoryFilesIgnore,
     getDirectoryFilesIgnoreSlow

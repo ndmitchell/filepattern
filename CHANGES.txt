@@ -1,5 +1,6 @@
 Changelog for filepattern
 
+    Make Directory module reexport FilePattern
 0.1.1, released 2019-02-12
     Switch to https://github.com/ndmitchell/filepattern
 0.1, released 2019-02-12

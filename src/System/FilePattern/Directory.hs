@@ -45,8 +45,10 @@ getDirectoryFiles dir match = operation False dir match []
 
 
 -- | Get the files below a certain root matching any of the first set of 'FilePattern' values,
---   but don't return any files which match any ignore pattern. Typically the ignore pattens will
---   end with @\/**@, e.g. @.git\/**@.
+--   but don't return any files which match any ignore pattern (the final argument).
+--   Typically the ignore pattens will end with @\/**@, e.g. @.git\/**@.
+--
+-- > getDirectoryFilesIgnore "myproject/src" ["**/*.h","**/*.c"] [".git/**"]
 --
 --   /Warning/: on case-insensitive file systems certain optimisations can cause surprising results.
 --   See the top of the module for details.

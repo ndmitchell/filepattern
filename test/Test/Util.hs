@@ -38,7 +38,7 @@ testData :: IORef TestData
 testData = unsafePerformIO $ newIORef $ TestData 0 [] []
 
 addTestData :: [FilePattern] -> [FilePath] -> IO ()
-addTestData pats paths = atomicModifyIORef' testData $ \t -> (f t, ())
+addTestData pats paths = atomicModifyIORef'_ testData f
     where f TestData{..} = TestData (testDataCases+1) (reverse pats ++ testDataPats) (reverse paths ++ testDataPaths)
 
 unsafeTestData :: IO TestData

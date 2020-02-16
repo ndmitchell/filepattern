@@ -83,7 +83,7 @@ instance Semigroup (Step a) where
         | [s] <- ss = s
         | otherwise = Step
             {stepDone = concatMap stepDone ss
-            ,stepNext = mconcat $ map stepNext ss
+            ,stepNext = mconcatMap stepNext ss
             ,stepApply = \x -> fastFoldMap (`stepApply` x) ss
             }
 
@@ -93,6 +93,7 @@ instance Monoid (Step a) where
     mconcat = maybe mempty sconcat . NE.nonEmpty -- important: use the fast sconcat
 
 fastFoldMap :: Monoid m => (a -> m) -> [a] -> m
+{- HLINT ignore fastFoldMap -}
 fastFoldMap f = mconcat . map f -- important: use the fast mconcat
 
 

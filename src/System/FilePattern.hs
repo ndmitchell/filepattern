@@ -108,8 +108,11 @@ substitute w xs = maybe (error msg) renderPath $ Core.substitute (parsePattern w
 --
 -- > matchMany [(a, pat)] [(b, path)] == maybeToList (map (a,b,) (match pat path))
 matchMany :: [(a, FilePattern)] -> [(b, FilePath)] -> [(a, b, [String])]
-matchMany pats = f (step pats) . makeTree . map (second $ (\(Core.Path x) -> x) . parsePath)
+matchMany [] = const []
+matchMany pats = \files -> if null files then [] else f spats $ makeTree $ map (second $ (\(Core.Path x) -> x) . parsePath) files
     where
+        spats = step pats
+
         f Step{..} (Tree bs xs) = concat $
             [(a, b, ps) | (a, ps) <- stepDone, b <- bs] :
             [f (stepApply x) t | (x, t) <- xs, case stepNext of StepOnly xs -> x `elem` xs; _ -> True]

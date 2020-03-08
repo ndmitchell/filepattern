@@ -96,7 +96,7 @@ substitute pat parts want = do
 substituteErr :: Partial => FilePattern -> [String] -> [String] -> IO ()
 substituteErr pat parts want = do
     addTestData [pat] []
-    assertException (return $ FP.substitute pat parts) want "substitute" ["Pattern" #= pat, "Parts" #= parts]
+    assertException (pure $ FP.substitute pat parts) want "substitute" ["Pattern" #= pat, "Parts" #= parts]
 
 
 stepNext :: [FilePattern] -> [String] -> FP.StepNext -> IO ()

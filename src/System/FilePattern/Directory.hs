@@ -78,7 +78,7 @@ operation slow rootBad yes no = f [] (step_ yes) (step_ no)
 
         -- parts is a series of path components joined with trailing / characters
         f parts yes no
-            | StepEverything <- stepNext no = return []
+            | StepEverything <- stepNext no = pure []
             | not slow, StepOnly xs <- stepNext yes = g parts yes no xs False
             | otherwise = do
                 xs <- filter (not . all (== '.')) <$> getDirectoryContents (root ++ parts)
@@ -89,13 +89,13 @@ operation slow rootBad yes no = f [] (step_ yes) (step_ no)
             concatForM (sort xs) $ \x -> do
                 let path = root ++ parts ++ x
                 -- deliberately shadow since using yes/no from now on would be wrong
-                yes <- return $ stepApply yes x
-                no <- return $ stepApply no x
-                isFile <- if stepDone yes /= [] && stepDone no == [] then Just <$> doesFileExist path else return Nothing
+                yes <- pure $ stepApply yes x
+                no <- pure $ stepApply no x
+                isFile <- if stepDone yes /= [] && stepDone no == [] then Just <$> doesFileExist path else pure Nothing
                 case isFile of
-                    Just True -> return [parts ++ x]
-                    _ | StepEverything <- stepNext no -> return []
-                      | StepOnly [] <- stepNext yes -> return []
+                    Just True -> pure [parts ++ x]
+                    _ | StepEverything <- stepNext no -> pure []
+                      | StepOnly [] <- stepNext yes -> pure []
                       | otherwise -> do
-                        b <- if doesExist && isFile == Just False then return True else doesDirectoryExist path
-                        if not b then return [] else f (parts ++ x ++ "/") yes no
+                        b <- if doesExist && isFile == Just False then pure True else doesDirectoryExist path
+                        if not b then pure [] else f (parts ++ x ++ "/") yes no

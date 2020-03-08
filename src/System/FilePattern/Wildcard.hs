@@ -22,7 +22,6 @@ module System.FilePattern.Wildcard(
 import Data.Functor
 import Data.List.Extra
 import Control.Applicative
-import Control.Monad.Extra
 import System.FilePattern.ListBy
 import Data.Traversable
 import qualified Data.Foldable as F
@@ -46,7 +45,7 @@ wildcardMatch eq (Wildcard pre mid post) x = do
     (pre, x) <- stripPrefixBy eq pre x
     (x, post) <- stripSuffixBy eq post x
     mid <- stripInfixes mid x
-    return $ [Left pre] ++ mid ++ [Left post]
+    pure $ [Left pre] ++ mid ++ [Left post]
     where
         stripInfixes [] x = Just [Right x]
         stripInfixes (m:ms) y = do

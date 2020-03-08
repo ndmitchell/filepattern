@@ -64,8 +64,8 @@ testProperties xs = do
     T.assertBool (sort resOne == sort resMany) "matchMany" []
     putStrLn $ "Passed " ++ show (length xs ^ 2) ++ " properties on specific cases"
     Success{} <- quickCheckWithResult stdArgs{maxSuccess=10000} $ \(ArbPattern p) (ArbPath x) ->
-        (if p ?== x then label "match" else property) $ unsafePerformIO $ prop p x >> return True
-    return ()
+        (if p ?== x then label "match" else property) $ unsafePerformIO $ prop p x >> pure True
+    pure ()
     where
         prop :: FilePattern -> FilePath -> IO (Maybe [String])
         prop pat file = do
@@ -78,4 +78,4 @@ testProperties xs = do
             let norm = (\x -> if null x then [""] else x) . filter (/= ".") . split isPathSeparator
             when (isJust ans) $ let res = substitute pat (fromJust $ FilePattern.match pat file) in
                 T.assertBool (norm res == norm file) "substitute" $ fields ++ ["Match" T.#= FilePattern.match pat file, "Got" T.#= res, "Input (norm)" T.#= norm file, "Got (norm)" T.#= norm res]
-            return ans
+            pure ans

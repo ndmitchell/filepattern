@@ -91,7 +91,7 @@ operation slow rootBad yes no = f [] (step_ yes) (step_ no)
                 -- deliberately shadow since using yes/no from now on would be wrong
                 yes <- pure $ stepApply yes x
                 no <- pure $ stepApply no x
-                isFile <- if stepDone yes /= [] && stepDone no == [] then Just <$> doesFileExist path else pure Nothing
+                isFile <- whenMaybe (stepDone yes /= [] && stepDone no == []) (doesFileExist path)
                 case isFile of
                     Just True -> pure [parts ++ x]
                     _ | StepEverything <- stepNext no -> pure []

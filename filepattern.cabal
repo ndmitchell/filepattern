@@ -1,4 +1,4 @@
-cabal-version:      >= 1.18
+cabal-version:      1.18
 build-type:         Simple
 name:               filepattern
 version:            0.1.2

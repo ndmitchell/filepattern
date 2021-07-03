@@ -1,4 +1,4 @@
-# FilePattern [![Hackage version](https://img.shields.io/hackage/v/filepattern.svg?label=Hackage)](https://hackage.haskell.org/package/filepattern) [![Stackage version](https://www.stackage.org/package/filepattern/badge/nightly?label=Stackage)](https://www.stackage.org/package/filepattern) [![Build status](https://img.shields.io/github/workflow/status/ndmitchell/filepattern/ci.svg)](https://github.com/ndmitchell/filepattern/actions)
+# FilePattern [![Hackage version](https://img.shields.io/hackage/v/filepattern.svg?label=Hackage)](https://hackage.haskell.org/package/filepattern) [![Stackage version](https://www.stackage.org/package/filepattern/badge/nightly?label=Stackage)](https://www.stackage.org/package/filepattern) [![Build status](https://img.shields.io/github/workflow/status/ndmitchell/filepattern/ci/master.svg)](https://github.com/ndmitchell/filepattern/actions)
 
 A library for matching files using patterns such as `src/**/*.png` for all `.png` files recursively under the `src` directory. There are two special forms:
 

@@ -79,13 +79,12 @@ operation slow rootBad yes no = f [] (step_ yes) (step_ no)
         -- parts is a series of path components joined with trailing / characters
         f parts yes no
             | StepEverything <- stepNext no = pure []
-            | not slow, StepOnly xs <- stepNext yes = g parts yes no xs False
+            | not slow, StepOnly xs <- stepNext yes = g parts yes no xs
             | otherwise = do
                 xs <- filter (not . all (== '.')) <$> getDirectoryContents (root ++ parts)
-                g parts yes no xs True
+                g parts yes no xs
 
-        -- doesExist means that one of doesFileExist or doesDirectoryExist is true
-        g parts yes no xs doesExist =
+        g parts yes no xs =
             concatForM (sort xs) $ \x -> do
                 let path = root ++ parts ++ x
                 -- deliberately shadow since using yes/no from now on would be wrong
@@ -97,5 +96,5 @@ operation slow rootBad yes no = f [] (step_ yes) (step_ no)
                     _ | StepEverything <- stepNext no -> pure []
                       | StepOnly [] <- stepNext yes -> pure []
                       | otherwise -> do
-                        b <- if doesExist && isFile == Just False then pure True else doesDirectoryExist path
+                        b <- doesDirectoryExist path
                         if not b then pure [] else f (parts ++ x ++ "/") yes no

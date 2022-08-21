@@ -11,6 +11,7 @@ import Data.Maybe
 import System.FilePattern as FilePattern
 import System.FilePath(isPathSeparator)
 import System.IO.Unsafe
+import Test.IO
 import Test.QuickCheck
 import Test.Cases
 import Prelude
@@ -50,6 +51,7 @@ main :: IO ()
 main = do
     putStrLn "Testing..."
     testCases
+    testIO
     T.TestData{..} <- T.unsafeTestData
     putStrLn $ "Passed " ++ show testDataCases ++ " specific cases"
     -- when False $ dot $ testWalk s

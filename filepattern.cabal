@@ -71,4 +71,5 @@ test-suite filepattern-test
         QuickCheck >= 2.0
     other-modules:
         Test.Cases
+        Test.IO
         Test.Util

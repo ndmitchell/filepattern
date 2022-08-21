@@ -1,5 +1,6 @@
 Changelog for filepattern
 
+    #5, remove invalid optimisation in the presence of symlinks
 0.1.2, released 2020-02-26
     Optimise matchMany for empty lists
     Remove support for GHC 7.4 to 7.8

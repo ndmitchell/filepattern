@@ -20,7 +20,7 @@ testSymlink = unless isWindows $
             createDirectoryIfMissing True "dir"
             createDirectoryIfMissing True "dir/a"
             createDirectoryIfMissing True "dir/b"
-            writeFile "" "dir/a/file"
+            writeFile "dir/a/file" ""
             system_ "ln -s dir/a/file dir/b/file"
             result <- getDirectoryFiles "." ["**"]
             let answer = ["dir/a/file","dir/b/file"]

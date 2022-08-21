@@ -96,5 +96,8 @@ operation slow rootBad yes no = f [] (step_ yes) (step_ no)
                     _ | StepEverything <- stepNext no -> pure []
                       | StepOnly [] <- stepNext yes -> pure []
                       | otherwise -> do
+                        -- Here we used to assume that getDirectoryContents means something exists,
+                        -- doesFileExists is False, therefore this must be a directory.
+                        -- That's not true in the presence of symlinks.
                         b <- doesDirectoryExist path
                         if not b then pure [] else f (parts ++ x ++ "/") yes no

@@ -4,7 +4,8 @@ module System.FilePattern.ListBy(
     eqListBy, stripPrefixBy, stripSuffixBy, stripInfixBy
     ) where
 
-import Control.Applicative
+import Prelude
+import Control.Applicative(liftA2) -- Moves to Prelude in 9.6
 import Data.Tuple.Extra
 
 

@@ -4,14 +4,13 @@ module System.FilePattern.ListBy(
     eqListBy, stripPrefixBy, stripSuffixBy, stripInfixBy
     ) where
 
-import Control.Applicative(liftA2) -- Moves to Prelude in 9.6
 import Prelude
 import Data.Tuple.Extra
 
 
 eqListBy :: (a -> b -> Maybe c) -> [a] -> [b] -> Maybe [c]
 eqListBy _ [] [] = Just []
-eqListBy eq (a:as) (b:bs) = liftA2 (:) (eq a b) (eqListBy eq as bs)
+eqListBy eq (a:as) (b:bs) = (:) <$> eq a b <*> eqListBy eq as bs
 eqListBy _ _ _ = Nothing
 
 

@@ -28,7 +28,7 @@ description:
     Originally taken from the <https://hackage.haskell.org/package/shake Shake library>.
 homepage:           https://github.com/ndmitchell/filepattern#readme
 bug-reports:        https://github.com/ndmitchell/filepattern/issues
-tested-with:        GHC==9.6, GHC==9.4, GHC==9.2, GHC==9.0, GHC==8.10, GHC==8.8
+tested-with:        GHC==9.8, GHC==9.6, GHC==9.4, GHC==9.2, GHC==9.0, GHC==8.10, GHC==8.8
 extra-doc-files:
     CHANGES.txt
     README.md

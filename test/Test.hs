@@ -61,7 +61,7 @@ main = do
 
 testProperties :: [String] -> IO ()
 testProperties xs = do
-    resOne <- fmap (catMaybes . concat) $ forM (zipFrom 1 xs) $ \(ix,x) -> forM (zipFrom 1 xs) $ \(iy,y) -> fmap (ix,iy,) <$> prop x y
+    resOne <- fmap (concatMap catMaybes) $ forM (zipFrom 1 xs) $ \(ix,x) -> forM (zipFrom 1 xs) $ \(iy,y) -> fmap (ix,iy,) <$> prop x y
     let resMany = matchMany (zipFrom 1 xs) (zipFrom 1 xs)
     T.assertBool (sort resOne == sort resMany) "matchMany" []
     putStrLn $ "Passed " ++ show (length xs ^ 2) ++ " properties on specific cases"

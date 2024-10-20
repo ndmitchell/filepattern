@@ -125,4 +125,4 @@ substitute (Pattern w) ps = do
 
 
 arity :: Pattern -> Int
-arity (Pattern x) = sum $ wildcardArity x : map wildcardArity (concat $ F.toList x)
+arity (Pattern x) = sum $ wildcardArity x : map wildcardArity (concat x)
